@@ -1,19 +1,10 @@
 from setuptools import setup, find_packages
 
 
-# def get_version_number():
-#     with open('version.cfg', "r") as v:
-#         current_version = v.readlines()[0]
-#     user_input = input("Current version is '{}' please enter a new version number now, "
-#                        "or press [enter] to use the existing version number:\n".format(current_version))
-#     version = user_input if user_input else current_version
-#     print("Packaging a version '{}'".format(version))
-#     if version != current_version:
-#         with open('version.cfg', 'w') as v:
-#             v.write(version)
-#         return version
-#     else:
-#         return current_version
+def get_version_number():
+    with open('version.cfg', "r") as v:
+        version = v.readlines()[0]
+    return version
 
 
 def readme():
