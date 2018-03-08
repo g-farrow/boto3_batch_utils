@@ -1,4 +1,4 @@
-from boto3_batch_utils.dynamo_batch_write_manager import DynamoWriteManager, dynamodb_batch_write_limit
+from boto3_batch_utils.dynamo_batch_write_manager import DynamoBatchWriteManager, dynamodb_batch_write_limit
 import unittest
 from unittest.mock import patch, MagicMock, call
 
@@ -43,7 +43,7 @@ class ProcessBatchWriteResponse(unittest.TestCase):
         If the response of the batch write does not contain unprocessed records, nothing is reprocessed
         """
         sir = MagicMock()
-        dwm = DynamoWriteManager(dynamo_table_name="ParentTableName", primary_partition_key="partition_key")
+        dwm = DynamoBatchWriteManager(dynamo_table_name="ParentTableName", primary_partition_key="partition_key")
         dwm._send_individual_record = sir
         response = {'UnprocessedItems': []}
         dwm._process_batch_write_response(response)
@@ -54,7 +54,7 @@ class ProcessBatchWriteResponse(unittest.TestCase):
         If the response of the batch write contains 1 unprocessed records, that record is reprocessed
         """
         sir = MagicMock()
-        dwm = DynamoWriteManager(dynamo_table_name="ParentTableName", primary_partition_key="partition_key")
+        dwm = DynamoBatchWriteManager(dynamo_table_name="ParentTableName", primary_partition_key="partition_key")
         dwm._send_individual_record = sir
         response = {'UnprocessedItems': {'ParentTableName': ["1"]}}
         dwm._process_batch_write_response(response)
@@ -65,7 +65,7 @@ class ProcessBatchWriteResponse(unittest.TestCase):
         If the response of the batch write contains 2 unprocessed records, those records are reprocessed
         """
         sir = MagicMock()
-        dwm = DynamoWriteManager(dynamo_table_name="ParentTableName", primary_partition_key="partition_key")
+        dwm = DynamoBatchWriteManager(dynamo_table_name="ParentTableName", primary_partition_key="partition_key")
         dwm._send_individual_record = sir
         response = {'UnprocessedItems': {'ParentTableName': ["1", "2"]}}
         dwm._process_batch_write_response(response)
@@ -84,7 +84,7 @@ class WriteBatchToDynamo(unittest.TestCase):
         """
         batch_write_item.return_value = {'UnprocessedItems': {}}
         batch = ["1"]
-        dwm = DynamoWriteManager(dynamo_table_name="ParentTableName", primary_partition_key="partition_key")
+        dwm = DynamoBatchWriteManager(dynamo_table_name="ParentTableName", primary_partition_key="partition_key")
         dwm._process_batch_write_response = lambda response: response
         dwm._write_batch_to_dynamo(batch)
         batch_write_item.assert_called_once_with(RequestItems={'ParentTableName': batch})
@@ -96,7 +96,7 @@ class WriteBatchToDynamo(unittest.TestCase):
         """
         batch_write_item.return_value = {'UnprocessedItems': {}}
         batch = ["1", "2"]
-        dwm = DynamoWriteManager(dynamo_table_name="ParentTableName", primary_partition_key="partition_key")
+        dwm = DynamoBatchWriteManager(dynamo_table_name="ParentTableName", primary_partition_key="partition_key")
         dwm._process_batch_write_response = lambda response: response
         dwm._write_batch_to_dynamo(batch)
         batch_write_item.assert_called_once_with(RequestItems={'ParentTableName': batch})
@@ -110,7 +110,7 @@ class WriteBatchToDynamo(unittest.TestCase):
         batch = []
         for x in range(1, 26):
             batch.append(str(x))
-        dwm = DynamoWriteManager(dynamo_table_name="ParentTableName", primary_partition_key="partition_key")
+        dwm = DynamoBatchWriteManager(dynamo_table_name="ParentTableName", primary_partition_key="partition_key")
         dwm._process_batch_write_response = lambda response: response
         dwm._write_batch_to_dynamo(batch)
         batch_write_item.assert_called_once_with(RequestItems={'ParentTableName': batch})
@@ -125,7 +125,7 @@ class SubmitRecord(unittest.TestCase):
         """
         When the DWM has no current 'records_to_write', submit a new record.
         """
-        dwm = DynamoWriteManager(dynamo_table_name="ParentTableName", primary_partition_key="partition_key")
+        dwm = DynamoBatchWriteManager(dynamo_table_name="ParentTableName", primary_partition_key="partition_key")
         record = {"partition_key": "1"}
         dwm.submit_record(record)
         self.assertEqual(1, len(dwm.records_to_write), msg="Ensure only 1 record exists in the records_to_write list")
@@ -136,7 +136,7 @@ class SubmitRecord(unittest.TestCase):
         """
         When the DWM has no current 'records_to_write', submit a new record.
         """
-        dwm = DynamoWriteManager(dynamo_table_name="ParentTableName", primary_partition_key="partition_key")
+        dwm = DynamoBatchWriteManager(dynamo_table_name="ParentTableName", primary_partition_key="partition_key")
         existing_record = {"Id": "999", "partition_key": "999"}
         dwm.records_to_write.append({"PutRequest": {"Item": existing_record}})
         record = {"partition_key": "1"}
@@ -159,7 +159,7 @@ class WriteRecords(unittest.TestCase):
         """
         When the DWM has no current 'records_to_write' it does not attempt to send data to dynamo.
         """
-        dwm = DynamoWriteManager(dynamo_table_name="ParentTableName", primary_partition_key="partition_key")
+        dwm = DynamoBatchWriteManager(dynamo_table_name="ParentTableName", primary_partition_key="partition_key")
         mock_write_batch_to_dynamo = MagicMock()
         dwm._write_batch_to_dynamo = mock_write_batch_to_dynamo
         dwm.write_records()
@@ -171,7 +171,7 @@ class WriteRecords(unittest.TestCase):
         """
         When the DWM has 1 'records_to_write' the write request is made correctly.
         """
-        dwm = DynamoWriteManager(dynamo_table_name="ParentTableName", primary_partition_key="partition_key")
+        dwm = DynamoBatchWriteManager(dynamo_table_name="ParentTableName", primary_partition_key="partition_key")
         mock_write_batch_to_dynamo = MagicMock()
         dwm._write_batch_to_dynamo = mock_write_batch_to_dynamo
         record_1 = {"PutRequest": {"Item": {"Id": "1", "partition_key": "1"}}}
@@ -186,7 +186,7 @@ class WriteRecords(unittest.TestCase):
         """
         When the DWM has a full batch of 'records_to_write' the write request is made correctly.
         """
-        dwm = DynamoWriteManager(dynamo_table_name="ParentTableName", primary_partition_key="partition_key")
+        dwm = DynamoBatchWriteManager(dynamo_table_name="ParentTableName", primary_partition_key="partition_key")
         mock_write_batch_to_dynamo = MagicMock()
         dwm._write_batch_to_dynamo = mock_write_batch_to_dynamo
         test_records_to_write = []
@@ -203,7 +203,7 @@ class WriteRecords(unittest.TestCase):
         """
         When the DWM has more than 1 batch of 'records_to_write' all the write requests are made correctly.
         """
-        dwm = DynamoWriteManager(dynamo_table_name="ParentTableName", primary_partition_key="partition_key")
+        dwm = DynamoBatchWriteManager(dynamo_table_name="ParentTableName", primary_partition_key="partition_key")
         mock_write_batch_to_dynamo = MagicMock()
         dwm._write_batch_to_dynamo = mock_write_batch_to_dynamo
         test_records_to_write_batch_1 = []

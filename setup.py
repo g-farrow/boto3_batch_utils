@@ -8,7 +8,7 @@ def get_version_number():
 
 
 def readme():
-    with open('README.rst') as f:
+    with open('README.md') as f:
         return f.read()
 
 
@@ -18,7 +18,7 @@ setup(name='boto3_batch_utils',
       license='GNU APGL v3',
       author='Greg Farrow',
       author_email='greg.farrow1@gmail.com',
-      find_packages=find_packages(),
+      packages=find_packages(exclude=['tests*']),
       version=get_version_number(),
       keywords='aws boto3 kinesis dynamo dynamodb batch',
       long_description=readme(),

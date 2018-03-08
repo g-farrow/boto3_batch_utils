@@ -22,7 +22,7 @@ class Chunks(unittest.TestCase):
         """
         array = ['a']
         batch_size = 1
-        km = kinesis_batch_manager.KinesisManager('TEST_STREAM', '', batch_size)
+        km = kinesis_batch_manager.KinesisBatchPutManager('TEST_STREAM', '', batch_size)
         km.records_to_send = array
         batch_list = km._split_records_to_send_into_batches()
         self.assertEqual(len(batch_list), 1, msg="Batch list length")
@@ -35,7 +35,7 @@ class Chunks(unittest.TestCase):
         """
         array = ['a', 'b']
         batch_size = 1
-        km = kinesis_batch_manager.KinesisManager('TEST_STREAM', '', batch_size)
+        km = kinesis_batch_manager.KinesisBatchPutManager('TEST_STREAM', '', batch_size)
         km.records_to_send = array
         batch_list = km._split_records_to_send_into_batches()
         self.assertEqual(len(batch_list), 2, msg="Batch list length")
@@ -50,7 +50,7 @@ class Chunks(unittest.TestCase):
         """
         array = ['a', 'b']
         batch_size = 2
-        km = kinesis_batch_manager.KinesisManager('TEST_STREAM', '', batch_size)
+        km = kinesis_batch_manager.KinesisBatchPutManager('TEST_STREAM', '', batch_size)
         km.records_to_send = array
         batch_list = km._split_records_to_send_into_batches()
         self.assertEqual(len(batch_list), 1, msg="Batch list length")
@@ -63,7 +63,7 @@ class Chunks(unittest.TestCase):
         """
         array = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
         batch_size = 7
-        km = kinesis_batch_manager.KinesisManager('TEST_STREAM', '', batch_size)
+        km = kinesis_batch_manager.KinesisBatchPutManager('TEST_STREAM', '', batch_size)
         km.records_to_send = array
         batch_list = km._split_records_to_send_into_batches()
         self.assertEqual(len(batch_list), 3, msg="Batch list length")
@@ -96,7 +96,7 @@ class SendBatchToKinesis(unittest.TestCase):
             ],
             'EncryptionType': 'KMS'
         }
-        km = kinesis_batch_manager.KinesisManager(kinesis_stream_name, '', 0)
+        km = kinesis_batch_manager.KinesisBatchPutManager(kinesis_stream_name, '', 0)
         km.kinesis_client.put_records = Mock(return_value=put_records_return_value)
         km._send_single_batch_to_kinesis(test_batch)
         km.kinesis_client.put_records.assert_called_once_with(StreamName=kinesis_stream_name, Records=test_batch)
@@ -134,7 +134,7 @@ class SendBatchToKinesis(unittest.TestCase):
                 ],
                 'EncryptionType': 'KMS'
             }
-        km = kinesis_batch_manager.KinesisManager(kinesis_stream_name, '', 0)
+        km = kinesis_batch_manager.KinesisBatchPutManager(kinesis_stream_name, '', 0)
         km.kinesis_client.put_records = Mock(return_value=put_records_return_value)
         km._send_single_batch_to_kinesis(test_batch)
         km.kinesis_client.put_records.assert_called_once_with(StreamName=kinesis_stream_name, Records=test_batch)
@@ -211,7 +211,7 @@ class SendBatchToKinesis(unittest.TestCase):
                 'EncryptionType': 'KMS'
             }
         ]
-        km = kinesis_batch_manager.KinesisManager(kinesis_stream_name, '', 0)
+        km = kinesis_batch_manager.KinesisBatchPutManager(kinesis_stream_name, '', 0)
         km.kinesis_client.put_records = Mock(return_value=put_records_side_effect)
         km._send_single_batch_to_kinesis(test_batch)
         km.kinesis_client.put_records.has_calls(
@@ -276,7 +276,7 @@ class SendBatchToKinesis(unittest.TestCase):
                 'EncryptionType': 'KMS'
             }
         ]
-        km = kinesis_batch_manager.KinesisManager(kinesis_stream_name, '', 0)
+        km = kinesis_batch_manager.KinesisBatchPutManager(kinesis_stream_name, '', 0)
         km.kinesis_client.put_records = Mock(return_value=put_records_side_effect)
         km._send_single_batch_to_kinesis(test_batch)
         km.kinesis_client.put_records.has_calls(
@@ -294,7 +294,7 @@ class SubmitRecord(unittest.TestCase):
 
     def test(self):
         test_record = {'record_key': {'an id': 'hey there!'}, 'like': 'similar', 'some words': 'and some others'}
-        km = kinesis_batch_manager.KinesisManager('', 'an id', 0)
+        km = kinesis_batch_manager.KinesisBatchPutManager('', 'an id', 0)
         km.submit_record(test_record)
         self.assertEqual(len(km.records_to_send), 1, msg="Ensure only 1 record is added to the list")
         self.assertEqual(km.records_to_send[0],
@@ -309,20 +309,20 @@ class FlushRecordsToKinesis(unittest.TestCase):
     Make sure that all messages are sent to kinesis and that the "records to send" list is then reset
     """
 
-    @patch.object(kinesis_batch_manager.KinesisManager, '_send_single_batch_to_kinesis', Mock())
-    @patch.object(kinesis_batch_manager.KinesisManager, '_split_records_to_send_into_batches', Mock())
+    @patch.object(kinesis_batch_manager.KinesisBatchPutManager, '_send_single_batch_to_kinesis', Mock())
+    @patch.object(kinesis_batch_manager.KinesisBatchPutManager, '_split_records_to_send_into_batches', Mock())
     def test_one_batch(self):
-        km = kinesis_batch_manager.KinesisManager('', '', 0)
+        km = kinesis_batch_manager.KinesisBatchPutManager('', '', 0)
         km._split_records_to_send_into_batches.return_value = [[1]]
         km.flush_all_records_to_kinesis()
         km._split_records_to_send_into_batches.assert_called_once()
         km._send_single_batch_to_kinesis.assert_called_once_with([1])
         self.assertEqual(km.records_to_send, [])
 
-    @patch.object(kinesis_batch_manager.KinesisManager, '_send_single_batch_to_kinesis', Mock())
-    @patch.object(kinesis_batch_manager.KinesisManager, '_split_records_to_send_into_batches', Mock())
+    @patch.object(kinesis_batch_manager.KinesisBatchPutManager, '_send_single_batch_to_kinesis', Mock())
+    @patch.object(kinesis_batch_manager.KinesisBatchPutManager, '_split_records_to_send_into_batches', Mock())
     def test_several_batches(self):
-        km = kinesis_batch_manager.KinesisManager('', '', 0)
+        km = kinesis_batch_manager.KinesisBatchPutManager('', '', 0)
         km._split_records_to_send_into_batches.return_value = [[1], [2], [3], [4], [5]]
         km.flush_all_records_to_kinesis()
         km._split_records_to_send_into_batches.assert_called_once()

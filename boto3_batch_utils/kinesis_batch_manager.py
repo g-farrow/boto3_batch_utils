@@ -1,52 +1,28 @@
 import logging
-import boto3
-from decimal import Decimal
-from json import dumps, JSONEncoder
+from json import dumps
 
-from boto3_batch_utils.utils import chunks
+from boto3_batch_utils.base_dispatcher import BaseBatchManager
+from boto3_batch_utils.utils import DecimalEncoder
 
 logger = logging.getLogger()
 
 
-class DecimalEncoder(JSONEncoder):
-    """
-    Helper class to convert a DynamoDB item to JSON.
-    """
-    def default(self, o):
-        if isinstance(o, Decimal):
-            if o % 1 > 0:
-                return float(o)
-            else:
-                return int(o)
-        return super(DecimalEncoder, self).default(o)
+kinesis_max_batch_size = 250
 
 
-class KinesisManager:
+class KinesisBatchPutManager(BaseBatchManager):
     """
-    Control the submission of puts to a Kinesis queue
+    Manage the batch 'put' of Kinesis records
     """
 
-    def __init__(self, stream_name, partition_key='Id', max_batch_size=250):
-        """
-        :param stream_name: The name of the Kinesis stream which all messges will be posted to
-        :param partition_key: The key name within each message, whose value will be used as the partition key for the
-        record
-        :param max_batch_size: The maximum number of messages to be sent to kinesis in any, one, put_records request
-        """
-        self.max_batch_size = max_batch_size
-        self.partition_key = partition_key
-        self.records_to_send = []
-        self.kinesis_client = boto3.client('kinesis')
+    def __init__(self, stream_name, partition_key_identifier='Id', max_batch_size=kinesis_max_batch_size, flush_payload_on_max_batch_size=True):
         self.stream_name = stream_name
+        self.partition_key_identifier = partition_key_identifier
+        super().__init__('kinesis', 'put_records', 'put_record', max_batch_size, flush_payload_on_max_batch_size)
 
-    def submit_record(self, record):
-        """
-        Submit a metric ready for batch sending to Cloudwatch
-        """
-        logger.debug("Appending following record to the queue: {}".format(record))
-        self.records_to_send.append(
-            {'Data': dumps(record, cls=DecimalEncoder), 'PartitionKey': '{}'.format(record['record_key'][self.partition_key])}
-        )
+    def _send_individual_payload(self, metric, retry=5):
+        """ Send an individual metric to Cloudwatch """
+        super()._send_individual_payload(metric)
 
     def _send_single_batch_to_kinesis(self, batch, nested=False):
         """
@@ -77,21 +53,18 @@ class KinesisManager:
             elif nested:
                 logger.debug("Partial batch of {} records completed without error".format(len(batch)))
 
-    def _split_records_to_send_into_batches(self):
-        """
-        Split the records to send into batches of less than or equal size to the maximum
-        """
-        batches = list(chunks(self.records_to_send, self.max_batch_size))
-        logger.info("{} records have been split into {} batches of {} or less".format(
-            len(self.records_to_send), len(batches), self.max_batch_size)
-        )
-        return batches
+    def _batch_send_payloads(self, batch=None, **nested_batch):
+        """ Attempt to send a single batch of metrics to Kinesis """
+        self._send_single_batch_to_kinesis(batch)
 
-    def flush_all_records_to_kinesis(self):
-        logger.info("Preparing to send {} messages to Kinesis::{}".format(len(self.records_to_send), self.stream_name))
-        batches = self._split_records_to_send_into_batches()
-        for batch in batches:
-            self._send_single_batch_to_kinesis(batch)
-        self.records_to_send = []
-        logger.info(
-            "Messages flushed to Kinesis::{} - records to send list has been reset to empty".format(self.stream_name))
+    def flush_payloads(self):
+        """ Push all metrics in the payload list to Kinesis """
+        super().flush_payloads()
+
+    def submit_payload(self, payload):
+        """ Submit a metric ready to be batched up and sent to Kinesis """
+        constructed_payload = {
+            'Data': dumps(payload, cls=DecimalEncoder),
+            'PartitionKey': '{}'.format(payload[self.partition_key_identifier])
+        }
+        super().submit_payload(constructed_payload)

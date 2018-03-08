@@ -9,3 +9,6 @@ Batch Put items to a Kinesis stream
 
 ## Dynamo Write
 Batch write records to a DynamoDB table
+
+## Cloudwatch Put Metrics
+Batch put metric data to Cloudwatch
