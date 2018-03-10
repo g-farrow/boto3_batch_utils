@@ -1,7 +1,7 @@
 import logging
 from datetime import datetime
 
-from boto3_batch_utils.base_dispatcher import BaseBatchManager
+from boto3_batch_utils.Base import BaseDispatcher
 
 
 logger = logging.getLogger()
@@ -14,7 +14,7 @@ def cloudwatch_dimension(name=None, value=None):
     return {'Name': name, 'Value': value}
 
 
-class CloudwatchBatchPutManager(BaseBatchManager):
+class CloudwatchBatchDispatcher(BaseDispatcher):
     """
     Manage the batch 'put' of Cloudwatch metrics
     """

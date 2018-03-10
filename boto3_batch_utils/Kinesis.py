@@ -1,7 +1,7 @@
 import logging
 from json import dumps
 
-from boto3_batch_utils.base_dispatcher import BaseBatchManager
+from boto3_batch_utils.Base import BaseDispatcher
 from boto3_batch_utils.utils import DecimalEncoder
 
 logger = logging.getLogger()
@@ -10,7 +10,7 @@ logger = logging.getLogger()
 kinesis_max_batch_size = 250
 
 
-class KinesisBatchPutManager(BaseBatchManager):
+class KinesisBatchDispatcher(BaseDispatcher):
     """
     Manage the batch 'put' of Kinesis records
     """

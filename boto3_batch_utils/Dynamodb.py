@@ -1,14 +1,14 @@
 import logging
 
-from boto3_batch_utils.base_dispatcher import BaseBatchManager
-from boto3_batch_utils.utils import convert_floats_to_decimals_in_dict
+from boto3_batch_utils.Base import BaseDispatcher
+from boto3_batch_utils.utils import convert_floats_in_dict_to_decimals
 
 logger = logging.getLogger()
 
 dynamodb_batch_write_limit = 25
 
 
-class DynamoBatchWriteManager(BaseBatchManager):
+class DynamoBatchDispatcher(BaseDispatcher):
     """
     Control the submission of writes to DynamoDB
     """
@@ -51,10 +51,10 @@ class DynamoBatchWriteManager(BaseBatchManager):
         """
         super().flush_payloads()
 
-    def submit_record(self, payload, partition_key_location="Id"):
+    def submit_payload(self, payload, partition_key_location="Id"):
         """
         Submit a metric ready for batch sending to Cloudwatch
         """
         if self.primary_partition_key not in payload.keys():
             payload[self.primary_partition_key] = self.partition_key_data_type(payload[partition_key_location])
-        super().submit_payload({"PutRequest": {"Item": convert_floats_to_decimals_in_dict(payload)}})
+        super().submit_payload({"PutRequest": {"Item": convert_floats_in_dict_to_decimals(payload)}})

@@ -1,7 +1,6 @@
 import logging
 import boto3
 from botocore.exceptions import ClientError
-# import traceback
 
 from boto3_batch_utils.utils import chunks
 
@@ -9,7 +8,7 @@ from boto3_batch_utils.utils import chunks
 logger = logging.getLogger()
 
 
-class BaseBatchManager:
+class BaseDispatcher:
 
     def __init__(self, subject, batch_dispatch_method, individual_dispatch_method, batch_size=1,
                  flush_payload_on_max_batch_size=True):
@@ -31,38 +30,41 @@ class BaseBatchManager:
         self.max_batch_size = batch_size
         self.flush_payload_on_max_batch_size = flush_payload_on_max_batch_size
         self.payload_list = []
-        logger.debug("Batch dispatch manager initialised: ")
+        logger.debug("Batch dispatch manager initialised: {}".format(self.subject_name))
 
-    def _send_individual_payload(self, payload, retry=5):
+    def _send_individual_payload(self, payload, retry=4):
         """ Send an individual payload to the subject """
+        logger.debug("Attempting to send individual payload ({} retries left)".format(retry))
         try:
             self.individual_dispatch_method(payload)
         except ClientError as e:
             if retry:
                 logger.debug("Individual send attempt has failed, retrying")
-                retry -= 1
-                self._send_individual_payload(payload, retry)
-            logger.error("Individual send attempt resulted in an exception: {}".format(e))
+                self._send_individual_payload(payload, retry-1)
+            else:
+                logger.error("Individual send attempt has failed, no more retries remaining")
+                raise e
+
+    def _handle_client_error(self, error, batch, send_as_individual_items=False):
+        """ Handle a botocore.exceptions.ClientError """
+        pass
 
     def _process_batch_send_response(self, response):
         """ Process the response data from a batch put request """
         pass
 
-    def _batch_send_payloads(self, batch=None, **nested_batch):
+    def _batch_send_payloads(self, batch):
         """ Attempt to send a single batch of payloads to the subject """
         logger.debug("Sending batch of '{}' payloads to {}".format(len(batch), self.subject_name))
-        # try:
-        if batch:
-            response = self.batch_dispatch_method(batch)
-            self._process_batch_send_response(response)
-        elif nested_batch:
-            response = self.batch_dispatch_method(**nested_batch)
-            self._process_batch_send_response(response)
-        else:
-            logger.warning("Method called but it has nothing to do, there is no payload to process")
-        # except ClientError as e:
-        #     logger.warning("Batch write error: {}".format(traceback.format_exc()))
-        #     raise ClientError(e)
+        try:
+            if isinstance(batch, dict):
+                response = self.batch_dispatch_method(**batch if isinstance(batch, dict) else batch)
+                self._process_batch_send_response(response)
+            else:
+                response = self.batch_dispatch_method(batch)
+                self._process_batch_send_response(response)
+        except ClientError as e:
+            self._handle_client_error(str(e), batch)
 
     def flush_payloads(self):
         """ Push all metrics in the payload list to Cloudwatch """

@@ -18,13 +18,13 @@ def convert_floats_in_list_to_decimals(array):
         if isinstance(i, float):
             array[array.index(i)] = Decimal(i)
         elif isinstance(i, dict):
-            convert_floats_to_decimals_in_dict(i)
+            convert_floats_in_dict_to_decimals(i)
         elif isinstance(i, list):
             convert_floats_in_list_to_decimals(i)
     return array
 
 
-def convert_floats_to_decimals_in_dict(record):
+def convert_floats_in_dict_to_decimals(record):
     """
     Floats are not valid object types for Dynamo, they must be converted to Decimals
     :param record:
@@ -34,9 +34,9 @@ def convert_floats_to_decimals_in_dict(record):
         if isinstance(v, float):
             new_record[k] = Decimal(v)
         elif isinstance(v, dict):
-            new_record[k] = convert_floats_to_decimals_in_dict(v)
+            new_record[k] = convert_floats_in_dict_to_decimals(v)
         elif isinstance(v, list):
-            convert_floats_in_list_to_decimals(v)
+            new_record[k] = convert_floats_in_list_to_decimals(v)
         else:
             new_record[k] = v
     return new_record
@@ -44,7 +44,7 @@ def convert_floats_to_decimals_in_dict(record):
 
 class DecimalEncoder(JSONEncoder):
     """
-    Helper class to convert a DynamoDB item to JSON.
+    Helper class to convert a replace Decimal objects with floats during JSON conversion.
     """
     def default(self, o):
         if isinstance(o, Decimal):
@@ -52,4 +52,4 @@ class DecimalEncoder(JSONEncoder):
                 return float(o)
             else:
                 return int(o)
-        return super(DecimalEncoder, self).default(o)
+        return super().default(o)

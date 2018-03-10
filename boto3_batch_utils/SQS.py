@@ -1,11 +1,11 @@
 from uuid import uuid4
-from boto3_batch_utils.base_dispatcher import BaseBatchManager
+from boto3_batch_utils.Base import BaseDispatcher
 
 
 sqs_batch_send_batch_size = 10
 
 
-class SQSBatchSendManager(BaseBatchManager):
+class SQSBatchDispatcher(BaseDispatcher):
     """
     Manage the batch 'send' of SQS messages
     """
