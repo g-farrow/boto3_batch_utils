@@ -21,7 +21,7 @@ class KinesisBatchDispatcher(BaseDispatcher):
         super().__init__('kinesis', 'put_records', 'put_record', max_batch_size, flush_payload_on_max_batch_size)
 
     def _send_individual_payload(self, metric, retry=5):
-        """ Send an individual metric to Cloudwatch """
+        """ Send an individual payload to Kinesis """
         super()._send_individual_payload(metric)
 
     def _send_single_batch_to_kinesis(self, batch, nested=False):
@@ -31,7 +31,7 @@ class KinesisBatchDispatcher(BaseDispatcher):
         :param nested: bool - Used for recursion identification. Do not override.
         """
         logger.debug("Attempting to send {} records to Kinesis::{}".format(len(batch), self.stream_name))
-        response = self.kinesis_client.put_records(StreamName=self.stream_name, Records=batch)
+        response = self.batch_dispatch_method.put_records(StreamName=self.stream_name, Records=batch)
         if "Records" in response:
             i = 0
             failed_records = []

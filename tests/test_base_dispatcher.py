@@ -246,7 +246,7 @@ class BatchSendPayloads(TestCase):
 @patch('boto3_batch_utils.Base.boto3.client', MockClient)
 class SendIndividualPayload(TestCase):
 
-    def test_successful_send(self):
+    def test_successful_send_non_dict(self):
         base = BaseDispatcher('test_subject', 'send_lots', 'send_one', batch_size=3,
                               flush_payload_on_max_batch_size=False)
         base.individual_dispatch_method = Mock()
@@ -269,7 +269,7 @@ class SendIndividualPayload(TestCase):
             call(test_payload)
         ])
 
-    def test_successfully_sent_after_4_failures(self):
+    def test_non_dict_raises_client_error_sent_after_5_failures(self):
         base = BaseDispatcher('test_subject', 'send_lots', 'send_one', batch_size=3,
                               flush_payload_on_max_batch_size=False)
         client_error = ClientError({"Error": {"message": "Something went wrong", "code": 0}}, "A Test")
@@ -284,4 +284,45 @@ class SendIndividualPayload(TestCase):
             call(test_payload),
             call(test_payload),
             call(test_payload)
+        ])
+
+
+    def test_successful_send_dict(self):
+        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', batch_size=3,
+                              flush_payload_on_max_batch_size=False)
+        base.individual_dispatch_method = Mock()
+        test_payload = {"abc": 123}
+        base._send_individual_payload(test_payload)
+        base.individual_dispatch_method.assert_called_once_with(**test_payload)
+
+    def test_successfully_sent_after_4_failures_dict(self):
+        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', batch_size=3,
+                              flush_payload_on_max_batch_size=False)
+        client_error = ClientError({"Error": {"message": "Something went wrong", "code": 0}}, "A Test")
+        base.individual_dispatch_method = Mock(side_effect=[client_error, client_error, client_error, client_error, ""])
+        test_payload = {"abc": 123}
+        base._send_individual_payload(test_payload)
+        base.individual_dispatch_method.assert_has_calls([
+            call(**test_payload),
+            call(**test_payload),
+            call(**test_payload),
+            call(**test_payload),
+            call(**test_payload)
+        ])
+
+    def test_dict_raises_client_error_after_5_failures(self):
+        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', batch_size=3,
+                              flush_payload_on_max_batch_size=False)
+        client_error = ClientError({"Error": {"message": "Something went wrong", "code": 0}}, "A Test")
+        base.individual_dispatch_method = Mock(side_effect=[client_error, client_error, client_error, client_error,
+                                                            client_error])
+        test_payload = {"abc": 123}
+        with self.assertRaises(ClientError):
+            base._send_individual_payload(test_payload)
+        base.individual_dispatch_method.assert_has_calls([
+            call(**test_payload),
+            call(**test_payload),
+            call(**test_payload),
+            call(**test_payload),
+            call(**test_payload)
         ])

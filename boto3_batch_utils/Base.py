@@ -36,7 +36,10 @@ class BaseDispatcher:
         """ Send an individual payload to the subject """
         logger.debug("Attempting to send individual payload ({} retries left)".format(retry))
         try:
-            self.individual_dispatch_method(payload)
+            if isinstance(payload, dict):
+                self.individual_dispatch_method(**payload)
+            else:
+                self.individual_dispatch_method(payload)
         except ClientError as e:
             if retry:
                 logger.debug("Individual send attempt has failed, retrying")
@@ -67,7 +70,7 @@ class BaseDispatcher:
             self._handle_client_error(str(e), batch)
 
     def flush_payloads(self):
-        """ Push all metrics in the payload list to Cloudwatch """
+        """ Push all payloads in the payload list to the subject """
         logger.debug("Payload list has {} entries".format(len(self.payload_list)))
         if self.payload_list:
             logger.debug("Preparing to send {} records to {}".format(len(self.payload_list), self.subject_name))

@@ -66,9 +66,9 @@ class SendIndividualPayload(TestCase):
 
     def test(self, mock_send_individual_payload):
         cw = CloudwatchBatchDispatcher('test_space', max_batch_size=1, flush_payload_on_max_batch_size=False)
-        test_metric = "test_metrics"
-        cw._send_individual_payload(test_metric)
-        mock_send_individual_payload.assert_called_once_with(test_metric)
+        test_payload = "test_metrics"
+        cw._send_individual_payload(test_payload)
+        mock_send_individual_payload.assert_called_once_with(test_payload, retry=4)
 
 
 class CloudwatchDimensionStructure(TestCase):

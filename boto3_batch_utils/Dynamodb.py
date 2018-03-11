@@ -1,4 +1,5 @@
 import logging
+from boto3.dynamodb.types import TypeSerializer
 
 from boto3_batch_utils.Base import BaseDispatcher
 from boto3_batch_utils.utils import convert_floats_in_dict_to_decimals
@@ -20,12 +21,13 @@ class DynamoBatchDispatcher(BaseDispatcher):
         self.partition_key_data_type = partition_key_data_type
         super().__init__('dynamodb', 'batch_write_item', 'put_item', max_batch_size, flush_payload_on_max_batch_size)
 
-    def _send_individual_record(self, payload):
+    def _send_individual_payload(self, payload, retry=4):
         """
         Write an individual record to Dynamo
         :param payload: JSON representation of a new record to write to the Dynamo table
         """
-        super()._send_individual_payload(payload)
+        _payload = TypeSerializer().serialize(payload)
+        super()._send_individual_payload(_payload, retry=4)
 
     def _process_batch_send_response(self, response):
         """
@@ -37,7 +39,7 @@ class DynamoBatchDispatcher(BaseDispatcher):
             logger.warning("Batch write failed to write all items, {} were rejected".format(
                 len(unprocessed_items[self.dynamo_table_name])))
             for item in unprocessed_items[self.dynamo_table_name]:
-                self._send_individual_record(item)
+                self._send_individual_payload(item)
 
     def _batch_send_payloads(self, batch=None, **nested_batch):
         """
