@@ -11,10 +11,10 @@ class MockClient:
     def __init__(self, client_name):
         self.client_name = client_name + "_client"
 
-    def send_lots(self):
+    def send_lots(self, batch):
         pass
 
-    def send_one(self):
+    def send_one(self, payload):
         pass
 
 mock_boto3_interface_type_mapper = {

@@ -60,6 +60,6 @@ class CloudwatchDimensionStructure(TestCase):
 
     def test(self):
         self.assertEqual(
-            {'Name': "test_name", 'Value': 123},
+            {'Name': "test_name", 'Value': '123'},
             cloudwatch_dimension("test_name", 123)
         )

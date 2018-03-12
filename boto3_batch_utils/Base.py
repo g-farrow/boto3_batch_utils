@@ -42,6 +42,10 @@ class BaseDispatcher:
         self.payload_list = []
         logger.debug("Batch dispatch manager initialised: {}".format(self.subject_name))
 
+    def __del__(self):
+        """ Actions to perform on cleanup """
+        self.flush_payloads()
+
     def _send_individual_payload(self, payload, retry=4):
         """ Send an individual payload to the subject """
         logger.debug("Attempting to send individual payload ({} retries left): {}".format(retry, payload))

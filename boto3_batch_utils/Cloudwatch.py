@@ -9,9 +9,9 @@ logger = logging.getLogger()
 cloudwatch_batch_limit = 25
 
 
-def cloudwatch_dimension(name=None, value=None):
+def cloudwatch_dimension(name, value):
     """ Structure for forming aCloudwatch dimension """
-    return {'Name': name, 'Value': value}
+    return {'Name': str(name), 'Value': str(value)}
 
 
 class CloudwatchBatchDispatcher(BaseDispatcher):
