@@ -1,6 +1,5 @@
 import logging
 from json import dumps
-from base64 import standard_b64encode
 
 from boto3_batch_utils.Base import BaseDispatcher
 from boto3_batch_utils.utils import DecimalEncoder
@@ -81,7 +80,7 @@ class KinesisBatchDispatcher(BaseDispatcher):
     def submit_payload(self, payload):
         """ Submit a metric ready to be batched up and sent to Kinesis """
         constructed_payload = {
-            'Data': standard_b64encode(str.encode(dumps(payload, cls=DecimalEncoder))),
+            'Data': dumps(payload, cls=DecimalEncoder),
             'PartitionKey': '{}'.format(payload[self.partition_key_identifier])
         }
         super().submit_payload(constructed_payload)

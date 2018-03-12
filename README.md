@@ -12,3 +12,6 @@ Batch write records to a DynamoDB table
 
 ## Cloudwatch Put Metrics
 Batch put metric data to Cloudwatch
+
+## SQS Send Messages
+Batch send messages to an SQS queue

@@ -2,7 +2,6 @@ from unittest import TestCase
 from unittest.mock import patch, Mock, call
 
 from json import dumps
-from base64 import standard_b64encode
 
 from boto3_batch_utils.Kinesis import KinesisBatchDispatcher
 from boto3_batch_utils.Base import BaseDispatcher
@@ -32,7 +31,7 @@ class SubmitPayload(TestCase):
         test_payload = {'test_part_key': 123}
         mock_json_dumps.return_value = "serialized_test_data"
         constructed_payload = {
-            'Data': standard_b64encode(str.encode("serialized_test_data")),
+            'Data': "serialized_test_data",
             'PartitionKey': '123'
         }
         kn.submit_payload(test_payload)
@@ -160,13 +159,13 @@ class ProcessFailedPayloads(TestCase):
                                     flush_payload_on_max_batch_size=False)
         kn.individual_dispatch_method = Mock()
         test_batch = [
-            {'Data': standard_b64encode(str.encode(dumps({"Id": 1}))), 'PartitionKey': 'Id'},
-            {'Data': standard_b64encode(str.encode(dumps({"Id": 2}))), 'PartitionKey': 'Id'},
-            {'Data': standard_b64encode(str.encode(dumps({"Id": 3}))), 'PartitionKey': 'Id'},
-            {'Data': standard_b64encode(str.encode(dumps({"Id": 4}))), 'PartitionKey': 'Id'},
-            {'Data': standard_b64encode(str.encode(dumps({"Id": 5}))), 'PartitionKey': 'Id'},
-            {'Data': standard_b64encode(str.encode(dumps({"Id": 6}))), 'PartitionKey': 'Id'},
-            {'Data': standard_b64encode(str.encode(dumps({"Id": 7}))), 'PartitionKey': 'Id'}
+            {'Data': dumps({"Id": 1}), 'PartitionKey': 'Id'},
+            {'Data': dumps({"Id": 2}), 'PartitionKey': 'Id'},
+            {'Data': dumps({"Id": 3}), 'PartitionKey': 'Id'},
+            {'Data': dumps({"Id": 4}), 'PartitionKey': 'Id'},
+            {'Data': dumps({"Id": 5}), 'PartitionKey': 'Id'},
+            {'Data': dumps({"Id": 6}), 'PartitionKey': 'Id'},
+            {'Data': dumps({"Id": 7}), 'PartitionKey': 'Id'}
         ]
         kn.batch_in_progress = test_batch
         test_response = {
@@ -192,8 +191,8 @@ class ProcessFailedPayloads(TestCase):
         }
         kn._process_failed_payloads(test_response)
         kn.individual_dispatch_method.assert_has_calls([
-            call(**{'StreamName': 'test_stream', 'Data': standard_b64encode(str.encode(dumps({"Id": 6}))), 'PartitionKey': 'Id'}),
-            call(**{'StreamName': 'test_stream', 'Data': standard_b64encode(str.encode(dumps({"Id": 7}))), 'PartitionKey': 'Id'})
+            call(**{'StreamName': 'test_stream', 'Data': dumps({"Id": 6}), 'PartitionKey': 'Id'}),
+            call(**{'StreamName': 'test_stream', 'Data': dumps({"Id": 7}), 'PartitionKey': 'Id'})
         ])
 
 
