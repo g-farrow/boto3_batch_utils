@@ -29,7 +29,6 @@ class SubmitPayload(TestCase):
         cw.submit_payload(mock_metric_name, mock_timestamp, mock_dimensions, mock_value, mock_unit)
         mock_submit_payload.assert_called_once_with({
             'MetricName': mock_metric_name,
-            'Dimensions': mock_dimensions,
             'Timestamp': mock_timestamp,
             'Value': mock_value,
             'Unit': mock_unit
@@ -54,7 +53,7 @@ class BatchSendPayloads(TestCase):
         cw = CloudwatchBatchDispatcher('test_space', max_batch_size=1, flush_payload_on_max_batch_size=False)
         test_batch = "a_test"
         cw._batch_send_payloads(test_batch)
-        mock_batch_send_payloads.assert_called_once_with(test_batch)
+        mock_batch_send_payloads.assert_called_once_with({'Namespace': 'test_space', 'MetricData': test_batch})
 
 
 class CloudwatchDimensionStructure(TestCase):
