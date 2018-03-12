@@ -21,11 +21,12 @@ class CloudwatchBatchDispatcher(BaseDispatcher):
 
     def __init__(self, namespace, max_batch_size=cloudwatch_batch_limit, flush_payload_on_max_batch_size=True):
         self.namespace = namespace
-        super().__init__('cloudwatch', 'put_metrics', 'put_metric', max_batch_size, flush_payload_on_max_batch_size)
+        super().__init__('cloudwatch', 'put_metric_data', batch_size=max_batch_size,
+                         flush_payload_on_max_batch_size=flush_payload_on_max_batch_size)
 
     def _send_individual_payload(self, payload, retry=4):
         """ Send an individual metric to Cloudwatch """
-        super()._send_individual_payload(payload, retry=4)
+        pass
 
     def _process_batch_send_response(self, response):
         """ Process the response data from a batch put request (N/A) """

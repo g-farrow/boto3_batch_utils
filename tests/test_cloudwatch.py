@@ -11,10 +11,7 @@ class MockClient:
     def __init__(self, client_name):
         self.client_name = client_name + "_client"
 
-    def put_metrics(self):
-        pass
-
-    def put_metric(self):
+    def put_metric_data(self):
         pass
 
 
@@ -58,17 +55,6 @@ class BatchSendPayloads(TestCase):
         test_batch = "a_test"
         cw._batch_send_payloads(test_batch)
         mock_batch_send_payloads.assert_called_once_with(test_batch)
-
-
-@patch('boto3_batch_utils.Base.boto3.client', MockClient)
-@patch.object(BaseDispatcher, '_send_individual_payload')
-class SendIndividualPayload(TestCase):
-
-    def test(self, mock_send_individual_payload):
-        cw = CloudwatchBatchDispatcher('test_space', max_batch_size=1, flush_payload_on_max_batch_size=False)
-        test_payload = "test_metrics"
-        cw._send_individual_payload(test_payload)
-        mock_send_individual_payload.assert_called_once_with(test_payload, retry=4)
 
 
 class CloudwatchDimensionStructure(TestCase):
