@@ -59,13 +59,13 @@ class BaseDispatcher:
         logger.debug("Sending batch of '{}' payloads to {}".format(len(batch), self.subject_name))
         try:
             if isinstance(batch, dict):
-                response = self.batch_dispatch_method(**batch if isinstance(batch, dict) else batch)
+                response = self.batch_dispatch_method(**batch)
                 self._process_batch_send_response(response)
             else:
                 response = self.batch_dispatch_method(batch)
                 self._process_batch_send_response(response)
         except ClientError as e:
-            self._handle_client_error(str(e), batch)
+            raise e
 
     def flush_payloads(self):
         """ Push all payloads in the payload list to the subject """
@@ -73,6 +73,7 @@ class BaseDispatcher:
         if self.payload_list:
             logger.debug("Preparing to send {} records to {}".format(len(self.payload_list), self.subject_name))
             batch_list = list(chunks(self.payload_list, self.max_batch_size))
+            logger.debug("Payload list split into {} batches".format(len(batch_list)))
             for batch in batch_list:
                 self._batch_send_payloads(batch)
             self.payload_list = []
