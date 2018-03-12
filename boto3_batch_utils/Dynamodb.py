@@ -45,7 +45,7 @@ class DynamoBatchDispatcher(BaseDispatcher):
         """
         Submit the batch to DynamoDB
         """
-        super()._batch_send_payloads(**{'RequestItems': {self.dynamo_table_name: batch}})
+        super()._batch_send_payloads({'RequestItems': {self.dynamo_table_name: batch}})
 
     def flush_payloads(self):
         """

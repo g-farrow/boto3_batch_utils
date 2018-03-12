@@ -64,7 +64,7 @@ class BatchSendPayloads(TestCase):
         dy = DynamoBatchDispatcher('test_table_name', 'p_key', max_batch_size=1, flush_payload_on_max_batch_size=False)
         test_batch = "a_test"
         dy._batch_send_payloads(test_batch)
-        mock_batch_send_payloads.assert_called_once_with(**{'RequestItems': {'test_table_name': test_batch}})
+        mock_batch_send_payloads.assert_called_once_with({'RequestItems': {'test_table_name': test_batch}})
 
 
 @patch('boto3_batch_utils.Base.boto3.client', MockClient)
