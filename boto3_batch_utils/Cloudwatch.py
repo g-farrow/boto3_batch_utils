@@ -49,5 +49,5 @@ class CloudwatchBatchDispatcher(BaseDispatcher):
                 'Unit': unit
             }
         if dimensions:
-            metric['Dimensions'] = dimensions
+            metric['Dimensions'] = dimensions if isinstance(dimensions, list) else [dimensions]
         super().submit_payload(metric)
