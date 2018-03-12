@@ -34,11 +34,13 @@ class BaseDispatcher:
 
     def _send_individual_payload(self, payload, retry=4):
         """ Send an individual payload to the subject """
-        logger.debug("Attempting to send individual payload ({} retries left)".format(retry))
+        logger.debug("Attempting to send individual payload ({} retries left): {}".format(retry, payload))
         try:
             if isinstance(payload, dict):
+                logger.debug("Submitting payload as keyword args")
                 self.individual_dispatch_method(**payload)
             else:
+                logger.debug("Submitting payload as arg")
                 self.individual_dispatch_method(payload)
         except ClientError as e:
             if retry:
@@ -47,10 +49,6 @@ class BaseDispatcher:
             else:
                 logger.error("Individual send attempt has failed, no more retries remaining")
                 raise e
-
-    def _handle_client_error(self, error, batch, send_as_individual_items=False):
-        """ Handle a botocore.exceptions.ClientError """
-        pass
 
     def _process_batch_send_response(self, response):
         """ Process the response data from a batch put request """
@@ -93,4 +91,3 @@ class BaseDispatcher:
         logger.debug("Payload has been submitted to the {} batch manager: {}".format(self.subject_name, payload))
         self.payload_list.append(payload)
         self._flush_payload_selector()
-

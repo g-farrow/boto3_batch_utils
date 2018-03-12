@@ -23,9 +23,9 @@ class CloudwatchBatchDispatcher(BaseDispatcher):
         self.namespace = namespace
         super().__init__('cloudwatch', 'put_metrics', 'put_metric', max_batch_size, flush_payload_on_max_batch_size)
 
-    def _send_individual_payload(self, metric, retry=4):
+    def _send_individual_payload(self, payload, retry=4):
         """ Send an individual metric to Cloudwatch """
-        super()._send_individual_payload(metric, retry=4)
+        super()._send_individual_payload(payload, retry=4)
 
     def _process_batch_send_response(self, response):
         """ Process the response data from a batch put request (N/A) """
