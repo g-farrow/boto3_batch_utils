@@ -45,7 +45,7 @@ class SQSBatchDispatcher(BaseDispatcher):
     def _batch_send_payloads(self, batch=None, **nested_batch):
         """ Attempt to send a single batch of records to SQS """
         self.batch_in_progress = batch
-        super()._batch_send_payloads(**{'QueueUrl': self.queue_url, 'Entries': batch})
+        super()._batch_send_payloads({'QueueUrl': self.queue_url, 'Entries': batch})
 
     def flush_payloads(self):
         """ Push all records in the payload list to SQS """

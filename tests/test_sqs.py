@@ -53,7 +53,7 @@ class BatchSendPayloads(TestCase):
         sqs = SQSBatchDispatcher('test_queue', max_batch_size=1, flush_payload_on_max_batch_size=False)
         test_batch = "a_test"
         sqs._batch_send_payloads(test_batch)
-        mock_batch_send_payloads.assert_called_once_with(**{'QueueUrl': "test_url", 'Entries': test_batch})
+        mock_batch_send_payloads.assert_called_once_with({'QueueUrl': "test_url", 'Entries': test_batch})
 
 
 @patch('boto3_batch_utils.Base.boto3.client', MockClient)
