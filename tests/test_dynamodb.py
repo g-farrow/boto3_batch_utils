@@ -1,7 +1,7 @@
 from unittest import TestCase
 from unittest.mock import patch, Mock, call
 
-from boto3_batch_utils.Dynamodb import DynamoBatchDispatcher, TypeSerializer
+from boto3_batch_utils.Dynamodb import DynamoBatchDispatcher
 from boto3_batch_utils.Base import BaseDispatcher
 
 
@@ -19,30 +19,26 @@ class MockClient:
 
 @patch('boto3_batch_utils.Base.boto3.client', MockClient)
 @patch('boto3_batch_utils.utils.convert_floats_in_dict_to_decimals')
-@patch.object(TypeSerializer, 'serialize')
 @patch.object(BaseDispatcher, 'submit_payload')
 class SubmitPayload(TestCase):
 
-    def test_where_key_preexists(self, mock_submit_payload, mock_serialize, mock_convert_decimals):
+    def test_where_key_preexists(self, mock_submit_payload, mock_convert_decimals):
         dy = DynamoBatchDispatcher('test_table_name', 'p_key', max_batch_size=1, flush_payload_on_max_batch_size=False)
         test_payload = {'p_key': 1}
-        mock_serialize.return_value = {"serialized_record": 'honest'}
         mock_convert_decimals.return_value = test_payload
         dy.submit_payload(test_payload, partition_key_location=None)
-        mock_submit_payload.assert_called_once_with({"PutRequest": {"Item": {"serialized_record": 'honest'}}})
+        mock_submit_payload.assert_called_once_with({"PutRequest": {"Item": test_payload}})
 
-    def test_where_key_requires_mapping(self, mock_submit_payload, mock_serialize, mock_convert_decimals):
+    def test_where_key_requires_mapping(self, mock_submit_payload, mock_convert_decimals):
         dy = DynamoBatchDispatcher('test_table_name', 'p_key', max_batch_size=1, flush_payload_on_max_batch_size=False)
         test_payload = {'unmapped_id': 1}
-        mock_serialize.return_value = {"serialized_record": 'honest'}
         mock_convert_decimals.return_value = test_payload
         dy.submit_payload(test_payload, partition_key_location='unmapped_id')
-        mock_submit_payload.assert_called_once_with({"PutRequest": {"Item": {"serialized_record": 'honest'}}})
+        mock_submit_payload.assert_called_once_with({"PutRequest": {"Item": test_payload}})
 
-    def test_where_key_not_found(self, mock_submit_payload, mock_serialize, mock_convert_decimals):
+    def test_where_key_not_found(self, mock_submit_payload, mock_convert_decimals):
         dy = DynamoBatchDispatcher('test_table_name', 'p_key', max_batch_size=1, flush_payload_on_max_batch_size=False)
         test_payload = {'there_is_no_real_id_here': 1}
-        mock_serialize.return_value = {"serialized_record": 'honest'}
         mock_convert_decimals.return_value = test_payload
         with self.assertRaises(KeyError):
             dy.submit_payload(test_payload, partition_key_location='something_useless')
