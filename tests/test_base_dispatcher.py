@@ -225,10 +225,11 @@ class BatchSendPayloads(TestCase):
         base.batch_dispatch_method = Mock(side_effect=ClientError({"Error": {"message": "Something went wrong", "code": 0}}, "A Test"))
         base._process_batch_send_response = Mock()
         base._handle_client_error = Mock()
-        base._batch_send_payloads(test_batch)
-        base.batch_dispatch_method.assert_called_once_with(test_batch)
-        base._handle_client_error.assert_called_once_with("An error occurred (Unknown) when calling the A Test operation: Unknown", test_batch)
-        base._process_batch_send_response.assert_not_called()
+        with self.assertRaises(ClientError):
+            base._batch_send_payloads(test_batch)
+            base.batch_dispatch_method.assert_called_once_with(test_batch)
+            base._handle_client_error.assert_called_once_with("An error occurred (Unknown) when calling the A Test operation: Unknown", test_batch)
+            base._process_batch_send_response.assert_not_called()
 
     def test_dict_client_error(self):
         base = BaseDispatcher('test_subject', 'send_lots', 'send_one', batch_size=3,
@@ -237,10 +238,11 @@ class BatchSendPayloads(TestCase):
         base.batch_dispatch_method = Mock(side_effect=ClientError({"Error": {"message": "Something went wrong", "code": 0}}, "A Test"))
         base._process_batch_send_response = Mock()
         base._handle_client_error = Mock()
-        base._batch_send_payloads(test_batch)
-        base.batch_dispatch_method.assert_called_once_with(**test_batch)
-        base._handle_client_error.assert_called_once_with("An error occurred (Unknown) when calling the A Test operation: Unknown", test_batch)
-        base._process_batch_send_response.assert_not_called()
+        with self.assertRaises(ClientError):
+            base._batch_send_payloads(test_batch)
+            base.batch_dispatch_method.assert_called_once_with(**test_batch)
+            base._handle_client_error.assert_called_once_with("An error occurred (Unknown) when calling the A Test operation: Unknown", test_batch)
+            base._process_batch_send_response.assert_not_called()
 
 
 @patch('boto3_batch_utils.Base.boto3.client', MockClient)

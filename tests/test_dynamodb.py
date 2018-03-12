@@ -19,27 +19,30 @@ class MockClient:
 
 @patch('boto3_batch_utils.Base.boto3.client', MockClient)
 @patch('boto3_batch_utils.utils.convert_floats_in_dict_to_decimals')
+@patch.object(TypeSerializer, 'serialize')
 @patch.object(BaseDispatcher, 'submit_payload')
 class SubmitPayload(TestCase):
 
-    def test_where_key_preexists(self, mock_submit_payload, mock_convert_decimals):
+    def test_where_key_preexists(self, mock_submit_payload, mock_serialize, mock_convert_decimals):
         dy = DynamoBatchDispatcher('test_table_name', 'p_key', max_batch_size=1, flush_payload_on_max_batch_size=False)
         test_payload = {'p_key': 1}
+        mock_serialize.return_value = {"serialized_record": 'honest'}
         mock_convert_decimals.return_value = test_payload
         dy.submit_payload(test_payload, partition_key_location=None)
-        mock_submit_payload.assert_called_once_with({"PutRequest": {"Item": test_payload}})
+        mock_submit_payload.assert_called_once_with({"PutRequest": {"Item": {"serialized_record": 'honest'}}})
 
-
-    def test_where_key_requires_mapping(self, mock_submit_payload, mock_convert_decimals):
+    def test_where_key_requires_mapping(self, mock_submit_payload, mock_serialize, mock_convert_decimals):
         dy = DynamoBatchDispatcher('test_table_name', 'p_key', max_batch_size=1, flush_payload_on_max_batch_size=False)
         test_payload = {'unmapped_id': 1}
+        mock_serialize.return_value = {"serialized_record": 'honest'}
         mock_convert_decimals.return_value = test_payload
         dy.submit_payload(test_payload, partition_key_location='unmapped_id')
-        mock_submit_payload.assert_called_once_with({"PutRequest": {"Item": test_payload}})
+        mock_submit_payload.assert_called_once_with({"PutRequest": {"Item": {"serialized_record": 'honest'}}})
 
-    def test_where_key_not_found(self, mock_submit_payload, mock_convert_decimals):
+    def test_where_key_not_found(self, mock_submit_payload, mock_serialize, mock_convert_decimals):
         dy = DynamoBatchDispatcher('test_table_name', 'p_key', max_batch_size=1, flush_payload_on_max_batch_size=False)
         test_payload = {'there_is_no_real_id_here': 1}
+        mock_serialize.return_value = {"serialized_record": 'honest'}
         mock_convert_decimals.return_value = test_payload
         with self.assertRaises(KeyError):
             dy.submit_payload(test_payload, partition_key_location='something_useless')
@@ -101,13 +104,11 @@ class ProcessBatchSendResponse(TestCase):
 
 
 @patch('boto3_batch_utils.Base.boto3.client', MockClient)
-@patch.object(TypeSerializer, 'serialize')
 @patch.object(BaseDispatcher, '_send_individual_payload')
 class SendIndividualPayload(TestCase):
 
-    def test(self, mock_send_individual_payload, mock_serialize):
+    def test(self, mock_send_individual_payload):
         dy = DynamoBatchDispatcher('test_table_name', 'p_key', max_batch_size=1, flush_payload_on_max_batch_size=False)
-        test_payload = "unprocessed_payload"
-        mock_serialize.return_value = "processed_payload"
+        test_payload = "processed_payload"
         dy._send_individual_payload(test_payload)
-        mock_send_individual_payload.assert_called_once_with("processed_payload", retry=4)
+        mock_send_individual_payload.assert_called_once_with(test_payload, retry=4)

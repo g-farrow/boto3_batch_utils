@@ -26,8 +26,7 @@ class DynamoBatchDispatcher(BaseDispatcher):
         Write an individual record to Dynamo
         :param payload: JSON representation of a new record to write to the Dynamo table
         """
-        _payload = TypeSerializer().serialize(payload)
-        super()._send_individual_payload(_payload, retry=4)
+        super()._send_individual_payload(payload, retry=4)
 
     def _process_batch_send_response(self, response):
         """
