@@ -7,10 +7,17 @@ from boto3_batch_utils.utils import chunks
 
 logger = logging.getLogger()
 
+_boto3_interface_type_mapper = {
+    'dynamodb': 'resource',
+    'kinesis': 'client',
+    'sqs': 'client',
+    'cloudwatch': 'client'
+}
+
 
 class BaseDispatcher:
 
-    def __init__(self, subject, batch_dispatch_method, individual_dispatch_method, batch_size=1,
+    def __init__(self, subject, batch_dispatch_method, individual_dispatch_method=None, batch_size=1,
                  flush_payload_on_max_batch_size=True):
         """
         :param subject: object - the boto3 client which shall be called to dispatch each payload
@@ -24,9 +31,12 @@ class BaseDispatcher:
         (False)
         """
         self.subject_name = subject
-        self.subject = boto3.client(self.subject_name)
+        self.subject = getattr(boto3, _boto3_interface_type_mapper[self.subject_name])(self.subject_name)
         self.batch_dispatch_method = getattr(self.subject, str(batch_dispatch_method))
-        self.individual_dispatch_method = getattr(self.subject, individual_dispatch_method)
+        if individual_dispatch_method:
+            self.individual_dispatch_method = getattr(self.subject, individual_dispatch_method)
+        else:
+            self.individual_dispatch_method = None
         self.max_batch_size = batch_size
         self.flush_payload_on_max_batch_size = flush_payload_on_max_batch_size
         self.payload_list = []

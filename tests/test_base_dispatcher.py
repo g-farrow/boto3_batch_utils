@@ -17,7 +17,12 @@ class MockClient:
     def send_one(self):
         pass
 
+mock_boto3_interface_type_mapper = {
+    'test_subject': 'client'
+}
 
+
+@patch('boto3_batch_utils.Base._boto3_interface_type_mapper', mock_boto3_interface_type_mapper)
 @patch('boto3_batch_utils.Base.boto3.client', MockClient)
 class Initialise(TestCase):
 
@@ -34,6 +39,7 @@ class Initialise(TestCase):
         self.assertEqual([], base.payload_list)
 
 
+@patch('boto3_batch_utils.Base._boto3_interface_type_mapper', mock_boto3_interface_type_mapper)
 @patch('boto3_batch_utils.Base.boto3.client', MockClient)
 class SubmitPayload(TestCase):
 
@@ -58,6 +64,7 @@ class SubmitPayload(TestCase):
         base._flush_payload_selector.assert_called_once()
 
 
+@patch('boto3_batch_utils.Base._boto3_interface_type_mapper', mock_boto3_interface_type_mapper)
 @patch('boto3_batch_utils.Base.boto3.client', MockClient)
 class PayloadSelectorWhenFlushOnMaxIsTrue(TestCase):
 
@@ -94,6 +101,7 @@ class PayloadSelectorWhenFlushOnMaxIsTrue(TestCase):
         base._batch_send_payloads.assert_not_called()
 
 
+@patch('boto3_batch_utils.Base._boto3_interface_type_mapper', mock_boto3_interface_type_mapper)
 @patch('boto3_batch_utils.Base.boto3.client', MockClient)
 class PayloadSelectorWhenFlushOnMaxIsFalse(TestCase):
 
@@ -130,6 +138,7 @@ class PayloadSelectorWhenFlushOnMaxIsFalse(TestCase):
         base._batch_send_payloads.assert_not_called()
 
 
+@patch('boto3_batch_utils.Base._boto3_interface_type_mapper', mock_boto3_interface_type_mapper)
 @patch('boto3_batch_utils.Base.boto3.client', MockClient)
 @patch('boto3_batch_utils.Base.chunks')
 class FlushPayloads(TestCase):
@@ -175,6 +184,7 @@ class FlushPayloads(TestCase):
         self.assertEqual([], base.payload_list)
 
 
+@patch('boto3_batch_utils.Base._boto3_interface_type_mapper', mock_boto3_interface_type_mapper)
 @patch('boto3_batch_utils.Base.boto3.client', MockClient)
 class BatchSendPayloads(TestCase):
 
@@ -211,7 +221,7 @@ class BatchSendPayloads(TestCase):
     def test_dict(self):
         base = BaseDispatcher('test_subject', 'send_lots', 'send_one', batch_size=3,
                               flush_payload_on_max_batch_size=False)
-        test_batch = {'somthing_to_process': [1, 2, 3, 4, 5, 6]}
+        test_batch = {'something_to_process': [1, 2, 3, 4, 5, 6]}
         base.batch_dispatch_method = Mock(return_value="batch_response")
         base._process_batch_send_response = Mock()
         base._batch_send_payloads(test_batch)
@@ -245,6 +255,7 @@ class BatchSendPayloads(TestCase):
             base._process_batch_send_response.assert_not_called()
 
 
+@patch('boto3_batch_utils.Base._boto3_interface_type_mapper', mock_boto3_interface_type_mapper)
 @patch('boto3_batch_utils.Base.boto3.client', MockClient)
 class SendIndividualPayload(TestCase):
 

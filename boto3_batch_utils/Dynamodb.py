@@ -19,7 +19,9 @@ class DynamoBatchDispatcher(BaseDispatcher):
         self.dynamo_table_name = dynamo_table_name
         self.primary_partition_key = primary_partition_key
         self.partition_key_data_type = partition_key_data_type
-        super().__init__('dynamodb', 'batch_write_item', 'put_item', max_batch_size, flush_payload_on_max_batch_size)
+        super().__init__('dynamodb', 'batch_write_item', batch_size=max_batch_size,
+                         flush_payload_on_max_batch_size=flush_payload_on_max_batch_size)
+        self.individual_dispatch_method = self.subject.Table(self.dynamo_table_name).put_item
 
     def _send_individual_payload(self, payload, retry=4):
         """
