@@ -1,5 +1,5 @@
 from decimal import Decimal
-from json import JSONEncoder
+from json import JSONEncoder, dumps, loads
 import logging
 
 logger = logging.getLogger()
@@ -33,18 +33,19 @@ def convert_floats_in_dict_to_decimals(record):
     Floats are not valid object types for Dynamo, they must be converted to Decimals
     :param record:
     """
-    new_record = {}
-    for k, v in record.items():
-        logger.debug("Parsing attribute '{}' for decimals: {}".format(k, v))
-        if isinstance(v, float):
-            new_record[k] = Decimal(str(v))
-        elif isinstance(v, dict):
-            new_record[k] = convert_floats_in_dict_to_decimals(v)
-        elif isinstance(v, list):
-            new_record[k] = convert_floats_in_list_to_decimals(v)
-        else:
-            new_record[k] = v
-    return new_record
+    # new_record = {}
+    # for k, v in record.items():
+    #     logger.debug("Parsing attribute '{}' for decimals: {}".format(k, v))
+    #     if isinstance(v, float):
+    #         new_record[k] = Decimal(str(v))
+    #     elif isinstance(v, dict):
+    #         new_record[k] = convert_floats_in_dict_to_decimals(v)
+    #     elif isinstance(v, list):
+    #         new_record[k] = convert_floats_in_list_to_decimals(v)
+    #     else:
+    #         new_record[k] = v
+    # return new_record
+    return loads(dumps(record, cls=DecimalEncoder))
 
 
 class DecimalEncoder(JSONEncoder):
