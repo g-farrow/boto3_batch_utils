@@ -245,7 +245,16 @@ class BatchSendPayloads(TestCase):
         base = BaseDispatcher('test_subject', 'send_lots', 'send_one', batch_size=3,
                               flush_payload_on_max_batch_size=False)
         test_batch = {}
-        base._batch_dispatch_method = Mock(side_effect=ClientError({"Error": {"message": "Something went wrong", "code": 0}}, "A Test"))
+        base._batch_dispatch_method = Mock(
+            side_effect=[
+                ClientError({"Error": {"message": "Something went wrong", "code": 0}}, "A Test"),
+                ClientError({"Error": {"message": "Something went wrong", "code": 0}}, "A Test"),
+                ClientError({"Error": {"message": "Something went wrong", "code": 0}}, "A Test"),
+                ClientError({"Error": {"message": "Something went wrong", "code": 0}}, "A Test"),
+                ClientError({"Error": {"message": "Something went wrong", "code": 0}}, "A Test"),
+                ClientError({"Error": {"message": "Something went wrong", "code": 0}}, "A Test")
+            ]
+        )
         base._process_batch_send_response = Mock()
         base._handle_client_error = Mock()
         with self.assertRaises(ClientError):

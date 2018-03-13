@@ -40,7 +40,7 @@ class CloudwatchBatchDispatcher(BaseDispatcher):
         """ Push all metrics in the payload list to Cloudwatch """
         super().flush_payloads()
 
-    def submit_payload(self, metric_name=None, timestamp=datetime.now(), dimensions=[], value=None, unit=None):
+    def submit_payload(self, metric_name=None, timestamp=datetime.now(), dimensions=[], value=None, unit='Count'):
         """ Submit a metric ready to be batched up and sent to Cloudwatch """
         metric = {
                 'MetricName': metric_name,

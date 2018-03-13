@@ -70,7 +70,7 @@ class BaseDispatcher:
         """ Process the response data from a batch put request """
         pass
 
-    def _batch_send_payloads(self, batch):
+    def _batch_send_payloads(self, batch, retry=4):
         """ Attempt to send a single batch of payloads to the subject """
         logger.debug("Sending batch of '{}' payloads to {}".format(len(batch), self._subject_name))
         try:
@@ -81,7 +81,11 @@ class BaseDispatcher:
                 response = self._batch_dispatch_method(batch)
                 self._process_batch_send_response(response)
         except ClientError as e:
-            raise e
+            if retry > 0:
+                self._batch_send_payloads(batch, retry-1)
+            else:
+                raise ClientError({"Error": {"message": str(e), "code": 0}},
+                                  self._batch_dispatch_method.func_name)
 
     def flush_payloads(self):
         """ Push all payloads in the payload list to the subject """
