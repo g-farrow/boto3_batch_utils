@@ -16,7 +16,7 @@ class SQSBatchDispatcher(BaseDispatcher):
     def __init__(self, queue_name, max_batch_size=sqs_batch_send_batch_size, flush_payload_on_max_batch_size=True):
         self.queue_name = queue_name
         super().__init__('sqs', 'send_message_batch', 'send_message', max_batch_size, flush_payload_on_max_batch_size)
-        self.queue_url = self._subject.get_queue_url(QueueName=self.queue_name)['QueueUrl']
+        self.queue_url = None
         logger.debug("SQS Queue connection established to: {}".format(self.queue_url))
         self.batch_in_progress = None
 
@@ -45,6 +45,8 @@ class SQSBatchDispatcher(BaseDispatcher):
 
     def _batch_send_payloads(self, batch=None, **nested_batch):
         """ Attempt to send a single batch of records to SQS """
+        if not self.queue_url:
+            self.queue_url = self._subject.get_queue_url(QueueName=self.queue_name)['QueueUrl']
         self.batch_in_progress = batch
         super()._batch_send_payloads({'QueueUrl': self.queue_url, 'Entries': batch})
 

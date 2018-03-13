@@ -152,6 +152,7 @@ class SendIndividualPayload(TestCase):
 
     def test(self, mock_send_individual_payload):
         sqs = SQSBatchDispatcher('test_queue', max_batch_size=1, flush_payload_on_max_batch_size=False)
+        sqs.queue_url = 'test_url'
         test_payload = {
             'Id': 12345,
             'MessageBody': "some_sort_of_payload",
