@@ -20,7 +20,7 @@ class DynamoBatchDispatcher(BaseDispatcher):
         self.partition_key_data_type = partition_key_data_type
         super().__init__('dynamodb', 'batch_write_item', batch_size=max_batch_size,
                          flush_payload_on_max_batch_size=flush_payload_on_max_batch_size)
-        self.individual_dispatch_method = self.subject.Table(self.dynamo_table_name).put_item
+        self.individual_dispatch_method = self._subject.Table(self.dynamo_table_name).put_item
 
     def _send_individual_payload(self, payload, retry=4):
         """
@@ -59,7 +59,7 @@ class DynamoBatchDispatcher(BaseDispatcher):
         """
         if self.primary_partition_key not in payload.keys():
             payload[self.primary_partition_key] = self.partition_key_data_type(payload[partition_key_location])
-        if not any(d["PutRequest"]["Item"][self.primary_partition_key] == payload[self.primary_partition_key] for d in self.payload_list):
+        if not any(d["PutRequest"]["Item"][self.primary_partition_key] == payload[self.primary_partition_key] for d in self._payload_list):
             super().submit_payload(
                 {"PutRequest": {
                     "Item": convert_floats_in_dict_to_decimals(payload)

@@ -157,7 +157,7 @@ class ProcessFailedPayloads(TestCase):
     def test_two_records_are_rejected_the_rest_are_successful(self):
         kn = KinesisBatchDispatcher("test_stream", partition_key_identifier="test_part_key", max_batch_size=1,
                                     flush_payload_on_max_batch_size=False)
-        kn.individual_dispatch_method = Mock()
+        kn._individual_dispatch_method = Mock()
         test_batch = [
             {'Data': dumps({"Id": 1}), 'PartitionKey': 'Id'},
             {'Data': dumps({"Id": 2}), 'PartitionKey': 'Id'},
@@ -190,7 +190,7 @@ class ProcessFailedPayloads(TestCase):
             ]
         }
         kn._process_failed_payloads(test_response)
-        kn.individual_dispatch_method.assert_has_calls([
+        kn._individual_dispatch_method.assert_has_calls([
             call(**{'StreamName': 'test_stream', 'Data': dumps({"Id": 6}), 'PartitionKey': 'Id'}),
             call(**{'StreamName': 'test_stream', 'Data': dumps({"Id": 7}), 'PartitionKey': 'Id'})
         ])

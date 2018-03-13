@@ -16,7 +16,7 @@ class SQSBatchDispatcher(BaseDispatcher):
     def __init__(self, queue_name, max_batch_size=sqs_batch_send_batch_size, flush_payload_on_max_batch_size=True):
         self.queue_name = queue_name
         super().__init__('sqs', 'send_message_batch', 'send_message', max_batch_size, flush_payload_on_max_batch_size)
-        self.queue_url = self.subject.get_queue_url(QueueName=self.queue_name)['QueueUrl']
+        self.queue_url = self._subject.get_queue_url(QueueName=self.queue_name)['QueueUrl']
         self.batch_in_progress = None
 
     def _send_individual_payload(self, payload, retry=5):
