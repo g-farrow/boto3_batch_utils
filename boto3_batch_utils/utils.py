@@ -1,5 +1,8 @@
 from decimal import Decimal
 from json import JSONEncoder
+import logging
+
+logger = logging.getLogger()
 
 
 def chunks(array, chunk_size):
@@ -15,6 +18,7 @@ def chunks(array, chunk_size):
 
 def convert_floats_in_list_to_decimals(array):
     for i in array:
+        logger.debug("Parsing list item for decimals: {}".format(i))
         if isinstance(i, float):
             array[array.index(i)] = Decimal(i)
         elif isinstance(i, dict):
@@ -31,6 +35,7 @@ def convert_floats_in_dict_to_decimals(record):
     """
     new_record = {}
     for k, v in record.items():
+        logger.debug("Parsing attribute '{}' for decimals: {}".format(k, v))
         if isinstance(v, float):
             new_record[k] = Decimal(v)
         elif isinstance(v, dict):
