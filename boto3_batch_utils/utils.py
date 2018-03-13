@@ -20,7 +20,7 @@ def convert_floats_in_list_to_decimals(array):
     for i in array:
         logger.debug("Parsing list item for decimals: {}".format(i))
         if isinstance(i, float):
-            array[array.index(i)] = Decimal(i)
+            array[array.index(i)] = Decimal(str(i))
         elif isinstance(i, dict):
             convert_floats_in_dict_to_decimals(i)
         elif isinstance(i, list):
@@ -37,7 +37,7 @@ def convert_floats_in_dict_to_decimals(record):
     for k, v in record.items():
         logger.debug("Parsing attribute '{}' for decimals: {}".format(k, v))
         if isinstance(v, float):
-            new_record[k] = Decimal(v)
+            new_record[k] = Decimal(str(v))
         elif isinstance(v, dict):
             new_record[k] = convert_floats_in_dict_to_decimals(v)
         elif isinstance(v, list):
