@@ -45,7 +45,21 @@ def convert_floats_in_dict_to_decimals(record):
     #     else:
     #         new_record[k] = v
     # return new_record
-    return loads(dumps(record, cls=DecimalEncoder))
+    return loads(dumps(record, cls=FloatEncoder))
+
+
+class FloatEncoder(JSONEncoder):
+    """
+    Helper class to convert a replace Decimal objects with floats during JSON conversion.
+    """
+
+    def default(self, o):
+        if isinstance(o, float):
+            if o % 1 > 0:
+                return Decimal(str(o))
+            else:
+                return int(o)
+        return super().default(o)
 
 
 class DecimalEncoder(JSONEncoder):
