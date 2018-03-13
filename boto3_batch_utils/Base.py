@@ -44,7 +44,9 @@ class BaseDispatcher:
 
     def __del__(self):
         """ Actions to perform on cleanup """
-        self.flush_payloads()
+        if self._payload_list:
+            self.flush_payloads()
+        logger.info("{} batch dispatcher has closed down".format(self._subject_name))
 
     def _send_individual_payload(self, payload, retry=4):
         """ Send an individual payload to the subject """
