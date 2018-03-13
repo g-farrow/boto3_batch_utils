@@ -56,9 +56,13 @@ class SQSBatchDispatcher(BaseDispatcher):
 
     def submit_payload(self, payload, message_id=str(uuid4()), delay_seconds=0):
         """ Submit a record ready to be batched up and sent to SQS """
-        constructed_payload = {
-            'Id': message_id,
-            'MessageBody': payload,
-            'DelaySeconds': delay_seconds
-            }
-        super().submit_payload(constructed_payload)
+        if not any(d["Id"] == message_id for d in self._payload_list):
+            constructed_payload = {
+                'Id': message_id,
+                'MessageBody': payload,
+                'DelaySeconds': delay_seconds
+                }
+            super().submit_payload(constructed_payload)
+        else:
+            logger.debug("Message with the provided message_id ({}) already exists in the batch, skipping...".format(
+                message_id))
