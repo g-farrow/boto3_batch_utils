@@ -62,6 +62,7 @@ class SQSBatchDispatcher(BaseDispatcher):
                 'MessageBody': payload,
                 'DelaySeconds': delay_seconds
                 }
+            logger.debug("SQS payload constructed: {}".format(constructed_payload))
             super().submit_payload(constructed_payload)
         else:
             logger.debug("Message with the provided message_id ({}) already exists in the batch, skipping...".format(
