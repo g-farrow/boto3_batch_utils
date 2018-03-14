@@ -40,15 +40,15 @@ class CloudwatchBatchDispatcher(BaseDispatcher):
         """ Push all metrics in the payload list to Cloudwatch """
         super().flush_payloads()
 
-    def submit_payload(self, metric_name=None, timestamp=datetime.now(), dimensions=[], value=None, unit='Count'):
+    def submit_payload(self, metric_name=None, timestamp=datetime.now(), dimensions=None, value=None, unit='Count'):
         """ Submit a metric ready to be batched up and sent to Cloudwatch """
-        logger.debug("Payload submitted to {} dispatcher: {}".format(self._subject_name, payload))
-        metric = {
+        payload = {
                 'MetricName': metric_name,
                 'Timestamp': timestamp,
                 'Value': value,
                 'Unit': unit
             }
+        logger.debug("Payload submitted to {} dispatcher: {}".format(self._subject_name, payload))
         if dimensions:
-            metric['Dimensions'] = dimensions if isinstance(dimensions, list) else [dimensions]
-        super().submit_payload(metric)
+            payload['Dimensions'] = dimensions if isinstance(dimensions, list) else [dimensions]
+        super().submit_payload(payload)
