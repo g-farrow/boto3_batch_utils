@@ -4,7 +4,7 @@ from json import dumps
 from boto3_batch_utils.Base import BaseDispatcher
 from boto3_batch_utils.utils import DecimalEncoder
 
-logger = logging.getLogger()
+logger = logging.getLogger('boto3-batch-utils')
 
 
 kinesis_max_batch_size = 250

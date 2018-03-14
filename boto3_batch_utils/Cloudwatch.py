@@ -4,7 +4,7 @@ from datetime import datetime
 from boto3_batch_utils.Base import BaseDispatcher
 
 
-logger = logging.getLogger()
+logger = logging.getLogger('boto3-batch-utils')
 
 cloudwatch_batch_limit = 25
 

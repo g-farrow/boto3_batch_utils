@@ -3,7 +3,7 @@ import logging
 from boto3_batch_utils.Base import BaseDispatcher
 from boto3_batch_utils.utils import convert_floats_in_dict_to_decimals
 
-logger = logging.getLogger()
+logger = logging.getLogger('boto3-batch-utils')
 
 dynamodb_batch_write_limit = 25
 

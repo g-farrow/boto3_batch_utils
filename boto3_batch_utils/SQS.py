@@ -3,7 +3,7 @@ from uuid import uuid4
 from boto3_batch_utils.Base import BaseDispatcher
 
 
-logger = logging.getLogger()
+logger = logging.getLogger('boto3-batch-utils')
 
 sqs_batch_send_batch_size = 10
 

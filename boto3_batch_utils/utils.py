@@ -2,7 +2,7 @@ from decimal import Decimal
 from json import JSONEncoder
 import logging
 
-logger = logging.getLogger()
+logger = logging.getLogger('boto3-batch-utils')
 
 
 def chunks(array, chunk_size):

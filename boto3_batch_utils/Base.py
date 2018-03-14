@@ -5,7 +5,7 @@ from botocore.exceptions import ClientError
 from boto3_batch_utils.utils import chunks
 
 
-logger = logging.getLogger()
+logger = logging.getLogger('boto3-batch-utils')
 
 _boto3_interface_type_mapper = {
     'dynamodb': 'resource',
@@ -72,7 +72,7 @@ class BaseDispatcher:
 
     def _batch_send_payloads(self, batch, retry=4):
         """ Attempt to send a single batch of payloads to the subject """
-        logger.debug("Sending batch of '{}' payloads to {}".format(len(batch), self._subject_name))
+        logger.debug("Sending batch type {} payloads to {}".format(type(batch), self._subject_name))
         try:
             if isinstance(batch, dict):
                 response = self._batch_dispatch_method(**batch)
