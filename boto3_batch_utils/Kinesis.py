@@ -79,6 +79,7 @@ class KinesisBatchDispatcher(BaseDispatcher):
 
     def submit_payload(self, payload):
         """ Submit a metric ready to be batched up and sent to Kinesis """
+        logger.debug("Payload submitted to {} dispatcher: {}".format(self._subject_name, payload))
         constructed_payload = {
             'Data': dumps(payload, cls=DecimalEncoder),
             'PartitionKey': '{}'.format(payload[self.partition_key_identifier])

@@ -82,7 +82,7 @@ class BaseDispatcher:
                 self._process_batch_send_response(response)
         except ClientError as e:
             if retry > 0:
-                self._batch_send_payloads(batch, retry-1)
+                self._batch_send_payloads(batch, retry=retry-1)
             else:
                 raise ClientError({"Error": {"message": str(e), "code": 0}},
                                   self._batch_dispatch_method.func_name)
@@ -109,6 +109,7 @@ class BaseDispatcher:
 
     def submit_payload(self, payload):
         """ Submit a metric ready to be batched up and sent to Cloudwatch """
-        logger.debug("Payload has been submitted to the {} batch manager: {}".format(self._subject_name, payload))
         self._payload_list.append(payload)
+        logger.debug("Payload has been added to the {} dispatcher payload list: {}".format(self._subject_name, payload))
         self._flush_payload_selector()
+

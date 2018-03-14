@@ -42,6 +42,7 @@ class CloudwatchBatchDispatcher(BaseDispatcher):
 
     def submit_payload(self, metric_name=None, timestamp=datetime.now(), dimensions=[], value=None, unit='Count'):
         """ Submit a metric ready to be batched up and sent to Cloudwatch """
+        logger.debug("Payload submitted to {} dispatcher: {}".format(self._subject_name, payload))
         metric = {
                 'MetricName': metric_name,
                 'Timestamp': timestamp,
