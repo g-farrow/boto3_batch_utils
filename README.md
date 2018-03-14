@@ -9,7 +9,7 @@ Each of the supported services has it's own dispatcher class. Each has the same 
 * **submit_payload**: pass in a payload (e.g. a single message, metric etc)
 * **flush_payloads**: send all payloads in the backlog. Don't worry if there are a lot of payloads, the dispatcher will automatically break them down into chunks. 
 
-*The `flush_payloads` method does nto need to be called. All records will be flushed when you program does gc or shuts down. However, it is recommended you flush records every invocation or when payload lists become long (100-200 items +) to avoid issues.*
+*It is recommended you `flush_payloads` every invocation or when payload lists become long (100-200 items +) to avoid issues.*
 
 ## Supported Services
 
