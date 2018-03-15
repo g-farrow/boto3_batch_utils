@@ -6,8 +6,6 @@ from boto3_batch_utils.Base import BaseDispatcher
 
 logger = logging.getLogger('boto3-batch-utils')
 
-cloudwatch_batch_limit = 25
-
 
 def cloudwatch_dimension(name, value):
     """ Structure for forming aCloudwatch dimension """
@@ -19,7 +17,7 @@ class CloudwatchBatchDispatcher(BaseDispatcher):
     Manage the batch 'put' of Cloudwatch metrics
     """
 
-    def __init__(self, namespace, max_batch_size=cloudwatch_batch_limit, flush_payload_on_max_batch_size=True):
+    def __init__(self, namespace, max_batch_size=25, flush_payload_on_max_batch_size=True):
         self.namespace = namespace
         super().__init__('cloudwatch', 'put_metric_data', batch_size=max_batch_size,
                          flush_payload_on_max_batch_size=flush_payload_on_max_batch_size)

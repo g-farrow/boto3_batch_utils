@@ -82,7 +82,7 @@ class BaseDispatcher:
             if retry > 0:
                 logger.warning("{} batch send has caused an error, retrying to send ({} retries remaining): {}".format(
                     self._subject_name, retry, str(e)))
-                logger.debug("Failed batch: {}".format(batch))
+                logger.debug("Failed batch: (type: {}) {}".format(type(batch), batch))
                 self._batch_send_payloads(batch, retry=retry-1)
             else:
                 raise ClientError({"Error": {"message": str(e), "code": 0}},

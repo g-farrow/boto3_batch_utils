@@ -15,7 +15,8 @@ class KinesisBatchDispatcher(BaseDispatcher):
     Manage the batch 'put' of Kinesis records
     """
 
-    def __init__(self, stream_name, partition_key_identifier='Id', max_batch_size=kinesis_max_batch_size, flush_payload_on_max_batch_size=True):
+    def __init__(self, stream_name, partition_key_identifier='Id', max_batch_size=250,
+                 flush_payload_on_max_batch_size=True):
         self.stream_name = stream_name
         self.partition_key_identifier = partition_key_identifier
         self.batch_in_progress = []

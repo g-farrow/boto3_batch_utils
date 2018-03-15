@@ -5,15 +5,13 @@ from boto3_batch_utils.Base import BaseDispatcher
 
 logger = logging.getLogger('boto3-batch-utils')
 
-sqs_batch_send_batch_size = 10
-
 
 class SQSBatchDispatcher(BaseDispatcher):
     """
     Manage the batch 'send' of SQS messages
     """
 
-    def __init__(self, queue_name, max_batch_size=sqs_batch_send_batch_size, flush_payload_on_max_batch_size=True):
+    def __init__(self, queue_name, max_batch_size=10, flush_payload_on_max_batch_size=True):
         self.queue_name = queue_name
         super().__init__('sqs', 'send_message_batch', 'send_message', max_batch_size, flush_payload_on_max_batch_size)
         self.queue_url = None

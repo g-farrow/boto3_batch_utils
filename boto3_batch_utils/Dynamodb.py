@@ -5,8 +5,6 @@ from boto3_batch_utils.utils import convert_floats_in_dict_to_decimals
 
 logger = logging.getLogger('boto3-batch-utils')
 
-dynamodb_batch_write_limit = 25
-
 
 class DynamoBatchDispatcher(BaseDispatcher):
     """
@@ -14,7 +12,7 @@ class DynamoBatchDispatcher(BaseDispatcher):
     """
 
     def __init__(self, dynamo_table_name, primary_partition_key, partition_key_data_type=str,
-                 max_batch_size=dynamodb_batch_write_limit, flush_payload_on_max_batch_size=True):
+                 max_batch_size=25, flush_payload_on_max_batch_size=True):
         self.dynamo_table_name = dynamo_table_name
         self.primary_partition_key = primary_partition_key
         self.partition_key_data_type = partition_key_data_type
