@@ -85,8 +85,7 @@ class BaseDispatcher:
                 logger.debug("Failed batch: (type: {}) {}".format(type(batch), batch))
                 self._batch_send_payloads(batch, retry=retry-1)
             else:
-                raise ClientError({"Error": {"message": str(e), "code": 0}},
-                                  self._batch_dispatch_method.func_name)
+                raise
 
     def flush_payloads(self):
         """ Push all payloads in the payload list to the subject """

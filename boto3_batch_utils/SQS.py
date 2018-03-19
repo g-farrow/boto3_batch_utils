@@ -58,7 +58,7 @@ class SQSBatchDispatcher(BaseDispatcher):
         if not any(d["Id"] == message_id for d in self._payload_list):
             constructed_payload = {
                 'Id': message_id,
-                'MessageBody': payload,
+                'MessageBody': str(payload),
                 'DelaySeconds': delay_seconds
                 }
             logger.debug("SQS payload constructed: {}".format(constructed_payload))
