@@ -28,7 +28,7 @@ class SubmitPayload(TestCase):
         mock_convert_decimals.return_value = test_payload
         dy.submit_payload(test_payload, partition_key_location=None)
         mock_submit_payload.assert_called_once_with(
-            {'PutRequest': {'Item': {'p_key': {'M': {'p_key': {'N': '1'}, 'attribute': {'S': 'a'}}}}}}
+            {'PutRequest': {'Item': {'M': {'p_key': {'N': '1'}, 'attribute': {'S': 'a'}}}}}
         )
 
     def test_where_key_requires_mapping(self, mock_submit_payload, mock_convert_decimals):
@@ -38,7 +38,7 @@ class SubmitPayload(TestCase):
         dy.submit_payload(test_payload, partition_key_location='unmapped_id')
         mock_submit_payload.assert_called_once_with(
             {'PutRequest': {
-                'Item': {'p_key': {'M': {'unmapped_id': {'N': '1'}, 'attribute': {'S': 'b'}, 'p_key': {'S': '1'}}}}}}
+                'Item': {'M': {'unmapped_id': {'N': '1'}, 'attribute': {'S': 'b'}, 'p_key': {'S': '1'}}}}}
         )
 
     def test_where_key_not_found(self, mock_submit_payload, mock_convert_decimals):
