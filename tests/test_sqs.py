@@ -31,7 +31,7 @@ class SubmitPayload(TestCase):
         test_delay = 3
         sqs.submit_payload(test_message, test_id, test_delay)
         mock_submit_payload.assert_called_once_with(
-            {'Id': test_id, 'MessageBody': test_message, 'DelaySeconds': test_delay}
+            {'Id': test_id, 'MessageBody': str(test_message), 'DelaySeconds': test_delay}
         )
 
 

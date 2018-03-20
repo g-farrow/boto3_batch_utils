@@ -1,4 +1,5 @@
 import logging
+from botocore.exceptions import ClientError
 
 from boto3_batch_utils.Base import BaseDispatcher
 from boto3_batch_utils.utils import convert_floats_in_dict_to_decimals
@@ -16,9 +17,8 @@ class DynamoBatchDispatcher(BaseDispatcher):
         self.dynamo_table_name = dynamo_table_name
         self.primary_partition_key = primary_partition_key
         self.partition_key_data_type = partition_key_data_type
-        super().__init__('dynamodb', 'batch_write_item', batch_size=max_batch_size,
+        super().__init__('dynamodb', 'batch_write_item', 'put_item', batch_size=max_batch_size,
                          flush_payload_on_max_batch_size=flush_payload_on_max_batch_size)
-        self.individual_dispatch_method = self._subject.Table(self.dynamo_table_name).put_item
 
     def _send_individual_payload(self, payload, retry=4):
         """
