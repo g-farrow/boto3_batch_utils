@@ -77,3 +77,4 @@ class DynamoBatchDispatcher(BaseDispatcher):
         else:
             logger.warning("The candidate payload has a primary_partition_key which already exists in the "
                            "payload_list: {}".format(payload))
+        self._flush_payload_selector()
