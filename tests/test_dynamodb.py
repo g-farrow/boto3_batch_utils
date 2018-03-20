@@ -27,7 +27,7 @@ class SubmitPayload(TestCase):
         test_payload = {'p_key': 1}
         mock_convert_decimals.return_value = test_payload
         dy.submit_payload(test_payload, partition_key_location=None)
-        mock_submit_payload.assert_called_once_with({'PutRequest': {'Item': {'M': {'p_key': {'N': '1'}}}}})
+        mock_submit_payload.assert_called_once_with({'PutRequest': {'Item': {1: {'M': {'p_key': {'N': '1'}}}}}})
 
     def test_where_key_requires_mapping(self, mock_submit_payload, mock_convert_decimals):
         dy = DynamoBatchDispatcher('test_table_name', 'p_key', max_batch_size=1, flush_payload_on_max_batch_size=False)
@@ -35,7 +35,7 @@ class SubmitPayload(TestCase):
         mock_convert_decimals.return_value = test_payload
         dy.submit_payload(test_payload, partition_key_location='unmapped_id')
         mock_submit_payload.assert_called_once_with(
-            {'PutRequest': {'Item': {'M': {'unmapped_id': {'N': '1'}, 'p_key': {'S': '1'}}}}}
+            {'PutRequest': {'Item': {'1': {'M': {'unmapped_id': {'N': '1'}, 'p_key': {'S': '1'}}}}}}
         )
 
     def test_where_key_not_found(self, mock_submit_payload, mock_convert_decimals):
