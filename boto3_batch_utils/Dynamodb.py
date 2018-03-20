@@ -61,11 +61,7 @@ class DynamoBatchDispatcher(BaseDispatcher):
         if not any(d["PutRequest"]["Item"].keys() == payload[self.primary_partition_key] for d in self._payload_list):
             super().submit_payload({
                 "PutRequest": {
-                    "Item": {
-                        self.primary_partition_key: TypeSerializer().serialize(
-                            convert_floats_in_dict_to_decimals(payload)
-                        )
-                    }
+                    "Item": TypeSerializer().serialize(convert_floats_in_dict_to_decimals(payload))
                 }
             })
         else:
