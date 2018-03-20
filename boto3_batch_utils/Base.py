@@ -107,7 +107,7 @@ class BaseDispatcher:
         ))
         if self.flush_payload_on_max_batch_size and len(self._payload_list) >= self.max_batch_size:
             logger.debug("Max batch size has been reached, flushing the payload list contents")
-            self.flush_payloads(self._payload_list)
+            self.flush_payloads()
         else:
             logger.debug("Max batch size of {} for {} has not yet been reached, continuing".format(self.max_batch_size,
                                                                                                    self._subject_name))
