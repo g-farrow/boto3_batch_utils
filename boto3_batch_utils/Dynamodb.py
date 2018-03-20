@@ -1,5 +1,5 @@
 import logging
-from botocore.exceptions import ClientError
+from boto3.dynamodb.types import TypeSerializer
 
 from boto3_batch_utils.Base import BaseDispatcher
 from boto3_batch_utils.utils import convert_floats_in_dict_to_decimals
@@ -61,7 +61,7 @@ class DynamoBatchDispatcher(BaseDispatcher):
         if not any(d["PutRequest"]["Item"][self.primary_partition_key] == payload[self.primary_partition_key] for d in self._payload_list):
             super().submit_payload(
                 {"PutRequest": {
-                    "Item": convert_floats_in_dict_to_decimals(payload)
+                    "Item": TypeSerializer().serialize(convert_floats_in_dict_to_decimals(payload))
                 }}
             )
         else:
