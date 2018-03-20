@@ -7,6 +7,13 @@ from boto3_batch_utils.utils import chunks
 
 logger = logging.getLogger('boto3-batch-utils')
 
+_boto3_interface_type_mapper = {
+    'dynamodb': 'resource',
+    'kinesis': 'client',
+    'sqs': 'client',
+    'cloudwatch': 'client'
+}
+
 
 class BaseDispatcher:
 
@@ -24,7 +31,7 @@ class BaseDispatcher:
         (False)
         """
         self._subject_name = subject
-        self._subject = getattr(boto3, 'client')(self._subject_name)
+        self._subject = getattr(boto3, _boto3_interface_type_mapper[self._subject_name])(self._subject_name)
         self._batch_dispatch_method = getattr(self._subject, str(batch_dispatch_method))
         if individual_dispatch_method:
             self._individual_dispatch_method = getattr(self._subject, individual_dispatch_method)
@@ -63,7 +70,7 @@ class BaseDispatcher:
 
     def _batch_send_payloads(self, batch, retry=4):
         """ Attempt to send a single batch of payloads to the subject """
-        logger.debug("Sending batch type {} payloads to {}: {}".format(type(batch), self._subject_name, batch))
+        logger.debug("Sending batch type {} payloads to {}".format(type(batch), self._subject_name))
         try:
             if isinstance(batch, dict):
                 response = self._batch_dispatch_method(**batch)

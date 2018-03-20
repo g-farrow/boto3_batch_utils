@@ -24,21 +24,17 @@ class SubmitPayload(TestCase):
 
     def test_where_key_preexists(self, mock_submit_payload, mock_convert_decimals):
         dy = DynamoBatchDispatcher('test_table_name', 'p_key', max_batch_size=1, flush_payload_on_max_batch_size=False)
-        test_payload = {'p_key': 1, 'attribute': 'a'}
+        test_payload = {'p_key': 1}
         mock_convert_decimals.return_value = test_payload
         dy.submit_payload(test_payload, partition_key_location=None)
-        mock_submit_payload.assert_called_once_with(
-            {'PutRequest': {'Item': {'p_key': 1, 'attribute': 'a'}}}
-        )
+        mock_submit_payload.assert_called_once_with({"PutRequest": {"Item": test_payload}})
 
     def test_where_key_requires_mapping(self, mock_submit_payload, mock_convert_decimals):
         dy = DynamoBatchDispatcher('test_table_name', 'p_key', max_batch_size=1, flush_payload_on_max_batch_size=False)
-        test_payload = {'unmapped_id': 1, 'attribute': 'b'}
+        test_payload = {'unmapped_id': 1}
         mock_convert_decimals.return_value = test_payload
         dy.submit_payload(test_payload, partition_key_location='unmapped_id')
-        mock_submit_payload.assert_called_once_with(
-            {'PutRequest': {'Item': {'unmapped_id': 1, 'attribute': 'b', 'p_key': '1'}}}
-        )
+        mock_submit_payload.assert_called_once_with({"PutRequest": {"Item": test_payload}})
 
     def test_where_key_not_found(self, mock_submit_payload, mock_convert_decimals):
         dy = DynamoBatchDispatcher('test_table_name', 'p_key', max_batch_size=1, flush_payload_on_max_batch_size=False)
@@ -104,11 +100,11 @@ class ProcessBatchSendResponse(TestCase):
 
 
 @patch('boto3_batch_utils.Base.boto3.client', MockClient)
-@patch.object(BaseDispatcher, '_send_individual_payload')
 class SendIndividualPayload(TestCase):
 
-    def test(self, mock_send_individual_payload):
+    def test(self):
         dy = DynamoBatchDispatcher('test_table_name', 'p_key', max_batch_size=1, flush_payload_on_max_batch_size=False)
-        test_payload = "processed_payload"
+        dy.dynamo_table.put_item = Mock()
+        test_payload = {"processed_payload": False}
         dy._send_individual_payload(test_payload)
-        mock_send_individual_payload.assert_called_once_with(test_payload, retry=4)
+        dy.dynamo_table.put_item.assert_called_once_with(**{'Item': test_payload})
