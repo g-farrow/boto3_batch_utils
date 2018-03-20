@@ -24,18 +24,18 @@ class SubmitPayload(TestCase):
 
     def test_where_key_preexists(self, mock_submit_payload, mock_convert_decimals):
         dy = DynamoBatchDispatcher('test_table_name', 'p_key', max_batch_size=1, flush_payload_on_max_batch_size=False)
-        test_payload = {'p_key': 1}
+        test_payload = {'p_key': 1, 'attribute': 'a'}
         mock_convert_decimals.return_value = test_payload
         dy.submit_payload(test_payload, partition_key_location=None)
-        mock_submit_payload.assert_called_once_with({'PutRequest': {'Item': {1: {'M': {'p_key': {'N': '1'}}}}}})
+        mock_submit_payload.assert_called_once_with({'PutRequest': {'Item': {1: {'M': {'attribute': {'S': 'a'}}}}}})
 
     def test_where_key_requires_mapping(self, mock_submit_payload, mock_convert_decimals):
         dy = DynamoBatchDispatcher('test_table_name', 'p_key', max_batch_size=1, flush_payload_on_max_batch_size=False)
-        test_payload = {'unmapped_id': 1}
+        test_payload = {'unmapped_id': 1, 'attribute': 'b'}
         mock_convert_decimals.return_value = test_payload
         dy.submit_payload(test_payload, partition_key_location='unmapped_id')
         mock_submit_payload.assert_called_once_with(
-            {'PutRequest': {'Item': {'1': {'M': {'unmapped_id': {'N': '1'}, 'p_key': {'S': '1'}}}}}}
+            {'PutRequest': {'Item': {'1': {'M': {'unmapped_id': {'N': '1'}, 'attribute': {'S': 'b'}}}}}}
         )
 
     def test_where_key_not_found(self, mock_submit_payload, mock_convert_decimals):
