@@ -89,7 +89,7 @@ class BaseDispatcher:
 
     def flush_payloads(self):
         """ Push all payloads in the payload list to the subject """
-        logger.debug("Payload list has {} entries".format(len(self._payload_list)))
+        logger.debug("{} payload list has {} entries".format(self._subject_name, len(self._payload_list)))
         if self._payload_list:
             logger.debug("Preparing to send {} records to {}".format(len(self._payload_list), self._subject_name))
             batch_list = list(chunks(self._payload_list, self.max_batch_size))
@@ -97,15 +97,20 @@ class BaseDispatcher:
             for batch in batch_list:
                 self._batch_send_payloads(batch)
             self._payload_list = []
+        else:
+            logger.info("No payloads to flush to {}".format(self._subject_name))
 
     def _flush_payload_selector(self):
         """ Decide whether or not to flush the payload (usually used following a payload submission) """
         logger.debug("Payload list now contains '{}' payloads, max batch size is '{}'".format(
             len(self._payload_list), self.max_batch_size
         ))
-        if self.flush_payload_on_max_batch_size and len(self._payload_list) == self.max_batch_size:
+        if self.flush_payload_on_max_batch_size and len(self._payload_list) >= self.max_batch_size:
             logger.debug("Max batch size has been reached, flushing the payload list contents")
             self._batch_send_payloads(self._payload_list)
+        else:
+            logger.debug("Max batch size of {} for {} has not yet been reached, continuing".format(self.max_batch_size,
+                                                                                                   self._subject_name))
 
     def submit_payload(self, payload):
         """ Submit a metric ready to be batched up and sent to Cloudwatch """
