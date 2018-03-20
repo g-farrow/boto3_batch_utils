@@ -56,14 +56,16 @@ class DynamoBatchDispatcher(BaseDispatcher):
         Submit a metric ready for batch sending to Cloudwatch
         """
         logger.debug("Payload submitted to {} dispatcher: {}".format(self._subject_name, payload))
-        partition_key = payload[
-            self.primary_partition_key] if self.primary_partition_key in payload else self.partition_key_data_type(payload[partition_key_location])
-        if self.primary_partition_key in payload.keys():
-            del payload[self.primary_partition_key]
+        if self.primary_partition_key not in payload.keys():
+            payload[self.primary_partition_key] = self.partition_key_data_type(payload[partition_key_location])
         if not any(d["PutRequest"]["Item"].keys() == payload[self.primary_partition_key] for d in self._payload_list):
             super().submit_payload({
                 "PutRequest": {
-                    "Item": {partition_key: TypeSerializer().serialize(convert_floats_in_dict_to_decimals(payload))}
+                    "Item": {
+                        self.primary_partition_key: TypeSerializer().serialize(
+                            convert_floats_in_dict_to_decimals(payload)
+                        )
+                    }
                 }
             })
         else:
