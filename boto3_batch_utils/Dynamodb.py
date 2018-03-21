@@ -35,6 +35,7 @@ class DynamoBatchDispatcher(BaseDispatcher):
                 self._send_individual_payload(payload, retry - 1)
             else:
                 logger.error("Individual send attempt has failed, no more retries remaining: {}".format(str(e)))
+                logger.debug("Failed payload: {}".format(payload))
                 raise
 
     def _process_batch_send_response(self, response):
