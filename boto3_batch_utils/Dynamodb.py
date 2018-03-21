@@ -48,7 +48,10 @@ class DynamoBatchDispatcher(BaseDispatcher):
             logger.warning("Batch write failed to write all items, {} were rejected".format(
                 len(unprocessed_items[self.dynamo_table_name])))
             for item in unprocessed_items[self.dynamo_table_name]:
-                self._send_individual_payload(item)
+                if 'PutRequest' in item:
+                    self._send_individual_payload(item['PutRequest']['Item'])
+                else:
+                    raise TypeError("Individual write type is not supported")
 
     def _batch_send_payloads(self, batch=None, **nested_batch):
         """

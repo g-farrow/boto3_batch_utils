@@ -81,7 +81,7 @@ class ProcessBatchSendResponse(TestCase):
     def test_one_unprocessed_item(self, mock_base_process_batch_send_response):
         dy = DynamoBatchDispatcher('test_table_name', 'p_key', max_batch_size=1, flush_payload_on_max_batch_size=False)
         dy._send_individual_payload = Mock()
-        test_response = {'UnprocessedItems': {'test_table_name': ["TEST_ITEM"]}}
+        test_response = {'UnprocessedItems': {'test_table_name': [{"PutRequest": {"Item": "TEST_ITEM"}}]}}
         dy._process_batch_send_response(test_response)
         mock_base_process_batch_send_response.assert_not_called()
         dy._send_individual_payload.assert_called_once_with("TEST_ITEM")
@@ -89,7 +89,13 @@ class ProcessBatchSendResponse(TestCase):
     def test_several_unprocessed_items(self, mock_base_process_batch_send_response):
         dy = DynamoBatchDispatcher('test_table_name', 'p_key', max_batch_size=1, flush_payload_on_max_batch_size=False)
         dy._send_individual_payload = Mock()
-        test_response = {'UnprocessedItems': {'test_table_name': ["TEST_ITEM1", "TEST_ITEM2", "TEST_ITEM3"]}}
+        test_response = {'UnprocessedItems': {
+            'test_table_name': [
+                {"PutRequest": {"Item": "TEST_ITEM1"}},
+                {"PutRequest": {"Item": "TEST_ITEM2"}},
+                {"PutRequest": {"Item": "TEST_ITEM3"}}
+            ]
+        }}
         dy._process_batch_send_response(test_response)
         mock_base_process_batch_send_response.assert_not_called()
         dy._send_individual_payload.assert_has_calls([
