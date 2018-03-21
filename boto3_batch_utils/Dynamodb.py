@@ -31,7 +31,7 @@ class DynamoBatchDispatcher(BaseDispatcher):
             self.dynamo_table.put_item(Item=payload)
         except ClientError as e:
             if retry:
-                logger.debug("Individual send attempt has failed, retrying")
+                logger.debug("Individual send attempt has failed, retrying: {}".format(str(e)))
                 self._send_individual_payload(payload, retry - 1)
             else:
                 logger.error("Individual send attempt has failed, no more retries remaining: {}".format(str(e)))
