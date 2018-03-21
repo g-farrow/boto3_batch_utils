@@ -34,8 +34,8 @@ class DynamoBatchDispatcher(BaseDispatcher):
                 logger.debug("Individual send attempt has failed, retrying")
                 self._send_individual_payload(payload, retry - 1)
             else:
-                logger.error("Individual send attempt has failed, no more retries remaining")
-                raise e
+                logger.error("Individual send attempt has failed, no more retries remaining: {}".format(str(e)))
+                raise
 
     def _process_batch_send_response(self, response):
         """
@@ -77,4 +77,4 @@ class DynamoBatchDispatcher(BaseDispatcher):
         else:
             logger.warning("The candidate payload has a primary_partition_key which already exists in the "
                            "payload_list: {}".format(payload))
-        self._flush_payload_selector()
+        self._flush_payload_selector()  # I think this is unnecessary... it should get called in the base method

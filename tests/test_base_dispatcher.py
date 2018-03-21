@@ -98,7 +98,7 @@ class PayloadSelectorWhenFlushOnMaxIsTrue(TestCase):
         base._payload_list = [1, 2, 3, 4]
         base._batch_send_payloads = Mock()
         base._flush_payload_selector()
-        base._batch_send_payloads.assert_not_called()
+        base._batch_send_payloads.assert_has_calls([call([1, 2, 3]), call([4])])
 
 
 @patch('boto3_batch_utils.Base._boto3_interface_type_mapper', mock_boto3_interface_type_mapper)
