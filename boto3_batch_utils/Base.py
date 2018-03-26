@@ -78,6 +78,7 @@ class BaseDispatcher:
             else:
                 response = self._batch_dispatch_method(batch)
                 self._process_batch_send_response(response)
+            logger.debug("Batch send response: {}".format(response))
         except ClientError as e:
             if retry > 0:
                 logger.warning("{} batch send has caused an error, retrying to send ({} retries remaining): {}".format(
