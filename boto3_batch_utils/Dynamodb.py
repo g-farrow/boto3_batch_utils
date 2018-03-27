@@ -53,11 +53,14 @@ class DynamoBatchDispatcher(BaseDispatcher):
                 else:
                     raise TypeError("Individual write type is not supported")
 
-    def _batch_send_payloads(self, batch=None, **nested_batch):
+    def _batch_send_payloads(self, batch=None, **kwargs):
         """
         Submit the batch to DynamoDB
         """
-        super()._batch_send_payloads({'RequestItems': {self.dynamo_table_name: batch}})
+        if 'retry' in kwargs:
+            super()._batch_send_payloads(batch, kwargs['retry'])
+        else:
+            super()._batch_send_payloads({'RequestItems': {self.dynamo_table_name: batch}})
 
     def flush_payloads(self):
         """
