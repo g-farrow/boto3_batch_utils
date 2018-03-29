@@ -69,10 +69,14 @@ class KinesisBatchDispatcher(BaseDispatcher):
                 logger.info("Failed payloads detected ({}), processing errors...".format(response["FailedRecordCount"]))
                 self._process_failed_payloads(response)
 
-    def _batch_send_payloads(self, batch=None, **nested_batch):
+    def _batch_send_payloads(self, batch=None, **kwargs):
         """ Attempt to send a single batch of metrics to Kinesis """
-        self.batch_in_progress = batch
-        super()._batch_send_payloads({'StreamName': self.stream_name, 'Records': batch})
+        if 'retry' in kwargs:
+            self.batch_in_progress = batch['Records']
+            super()._batch_send_payloads(batch, kwargs['retry'])
+        else:
+            self.batch_in_progress = batch
+            super()._batch_send_payloads({'StreamName': self.stream_name, 'Records': batch})
 
     def flush_payloads(self):
         """ Push all metrics in the payload list to Kinesis """
