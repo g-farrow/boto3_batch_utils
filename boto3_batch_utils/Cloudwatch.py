@@ -30,9 +30,12 @@ class CloudwatchBatchDispatcher(BaseDispatcher):
         """ Process the response data from a batch put request (N/A) """
         pass
 
-    def _batch_send_payloads(self, batch=None, **nested_batch):
+    def _batch_send_payloads(self, batch=None, **kwargs):
         """ Attempt to send a single batch of metrics to Cloudwatch """
-        super()._batch_send_payloads({'Namespace': self.namespace, 'MetricData': batch})
+        if 'retry' in kwargs:
+            super()._batch_send_payloads(batch, kwargs['retry'])
+        else:
+            super()._batch_send_payloads({'Namespace': self.namespace, 'MetricData': batch})
 
     def flush_payloads(self):
         """ Push all metrics in the payload list to Cloudwatch """
