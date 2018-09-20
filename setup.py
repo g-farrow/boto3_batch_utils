@@ -23,6 +23,4 @@ setup(name='boto3_batch_utils',
       keywords='aws boto3 kinesis dynamo dynamodb batch',
       long_description=readme(),
       include_package_data=True,
-      install_requires=[
-          'boto3'
-      ])
+      install_requires=[])

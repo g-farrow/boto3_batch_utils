@@ -35,7 +35,7 @@ class KinesisBatchDispatcher(BaseDispatcher):
         for r in response["Records"]:
             logger.debug("Response: {}".format(r))
             if "ErrorCode" in r:
-                logger.debug("Payload failed to be sent to Kinesis. Message content: {}".format(r))
+                logger.warning("Payload failed to be sent to Kinesis. Message content: {}".format(r))
                 failed_records.append(i)
             i += 1
         successful_message_count = len(self.batch_in_progress) - len(failed_records)
