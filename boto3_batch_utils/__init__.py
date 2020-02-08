@@ -10,3 +10,5 @@ __all__ = [
     'KinesisBatchDispatcher',
     'SQSBatchDispatcher'
 ]
+
+__version__ = '1.5.2'

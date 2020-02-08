@@ -1,10 +1,18 @@
+import os
+import re
 from setuptools import setup, find_packages
 
+ROOT = os.path.dirname(__file__)
+VERSION_RE = re.compile(r'''__version__ = ['"]([0-9.]+)['"]''')
 
-def get_version_number():
-    with open('version.cfg', "r") as v:
-        version = v.readlines()[0]
-    return version
+requires = [
+    "boto3>=1.11.13"
+]
+
+
+def get_version():
+    init = open(os.path.join(ROOT, 'boto3_batch_utils', '__init__.py')).read()
+    return VERSION_RE.search(init).group(1)
 
 
 def readme():
@@ -13,14 +21,14 @@ def readme():
 
 
 setup(name='boto3_batch_utils',
-      description='',
+      description='A Client for managing batch interactions with AWS services',
       url='https://github.com/g-farrow/boto3_batch_utils',
       license='GNU APGL v3',
       author='Greg Farrow',
       author_email='greg.farrow1@gmail.com',
       packages=find_packages(exclude=['tests*']),
-      version=get_version_number(),
+      version=get_version(),
       keywords='aws boto3 kinesis dynamo dynamodb batch',
       long_description=readme(),
       include_package_data=True,
-      install_requires=[])
+      install_requires=requires)
