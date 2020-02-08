@@ -1,0 +1,7 @@
+[flake8]
+max-line-length=120
+exclude = venv/*, tests/*
+max-complexity = 7
+count=true
+show-source=true
+statistics=true
