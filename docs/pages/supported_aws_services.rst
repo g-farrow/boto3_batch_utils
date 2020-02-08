@@ -1,4 +1,5 @@
-# Supported AWS Services
+Supported AWS Services
+======================
 
 Below is a list of the AWS Services which are currently supported by Boto3 Batch Utils and the appropriate client.
 

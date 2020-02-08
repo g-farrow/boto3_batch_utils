@@ -1,4 +1,5 @@
-# Usage Guide
+Usage Guide
+===========
 
 ## General Usage
 The library is very simple to use and works on the concept that you wish to submit payloads to a dispatcher, and not care too much about how to batch up the payloads and send them into their target service. This allows you to utilise the significant efficiencies of patch send/put/write methods, without the problem of error handling and batch sizes.
