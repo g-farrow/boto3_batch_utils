@@ -1,11 +1,9 @@
-import logging
+from boto3_batch_utils import logger
 import boto3
 from botocore.exceptions import ClientError
 
 from boto3_batch_utils.utils import chunks
 
-
-logger = logging.getLogger('boto3-batch-utils')
 
 _boto3_interface_type_mapper = {
     'dynamodb': 'resource',

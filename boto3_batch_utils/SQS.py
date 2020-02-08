@@ -1,9 +1,6 @@
-import logging
+from boto3_batch_utils import logger
 from uuid import uuid4
 from boto3_batch_utils.Base import BaseDispatcher
-
-
-logger = logging.getLogger('boto3-batch-utils')
 
 
 class SQSBatchDispatcher(BaseDispatcher):

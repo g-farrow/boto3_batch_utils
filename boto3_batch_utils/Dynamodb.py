@@ -1,10 +1,8 @@
-import logging
+from boto3_batch_utils import logger
 from botocore.exceptions import ClientError
 
 from boto3_batch_utils.Base import BaseDispatcher
 from boto3_batch_utils.utils import convert_floats_in_dict_to_decimals
-
-logger = logging.getLogger('boto3-batch-utils')
 
 
 class DynamoBatchDispatcher(BaseDispatcher):

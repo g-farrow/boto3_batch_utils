@@ -1,10 +1,7 @@
-import logging
+from boto3_batch_utils import logger
 from datetime import datetime
 
 from boto3_batch_utils.Base import BaseDispatcher
-
-
-logger = logging.getLogger('boto3-batch-utils')
 
 
 def cloudwatch_dimension(name, value):
