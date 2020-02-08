@@ -1,6 +1,6 @@
 [flake8]
 max-line-length=120
-exclude = venv/*, tests/*
+exclude = venv/*, tests/*, docs/*
 max-complexity = 7
 count=true
 show-source=true
