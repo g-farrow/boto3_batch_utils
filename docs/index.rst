@@ -3,8 +3,8 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to Boto3 Batch Utils's documentation!
-=============================================
+Introduction to Boto3 Batch Utils
+=================================
 
 Boto3 Batch Utils is a Python library which helps to make interactions with AWS Services more efficient, by batching
 requests.
@@ -20,8 +20,9 @@ split/retry patterns.
    :maxdepth: 2
    :caption: Installation:
 
-   pages/installation.md
-   pages/supported_aws_services.md
+   pages/installation.rst
+   pages/supported_aws_services.rst
+   pages/guide.rst
 
 
 Indices and tables
