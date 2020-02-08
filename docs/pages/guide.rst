@@ -18,40 +18,43 @@ Supported Services
 
 Batch Put items to a Kinesis stream
 
-```
-from boto3_batch_utils import KinesisBatchDispatcher
-kn = KinesisBatchDispatcher('MyExampleStreamName')
-kn.submit_payload({"something": "in", "my": "message"})
-kn.submit_payload({"tells": "me", "this": "is", "easy": True})
-kn.flush_payloads()
-```
+.. code-block:: python
+    from boto3_batch_utils import KinesisBatchDispatcher
+    kn = KinesisBatchDispatcher('MyExampleStreamName')
+    kn.submit_payload({"something": "in", "my": "message"})
+    kn.submit_payload({"tells": "me", "this": "is", "easy": True})
+    kn.flush_payloads()
 
-#### Dynamo Write
+*Dynamo Write*
+
 Batch write records to a DynamoDB table
-```
-from boto3_batch_utils import DynamoBatchDispatcher
-dy = DynamoBatchDispatcher('MyExampleDynamoTable', primary_partition_key='Id')
-dy.submit_payload({"something": "in", "my": "message"})
-dy.submit_payload({"tells": "me", "this": "is", "easy": True})
-dy.flush_payloads()
-```
 
-#### Cloudwatch Put Metrics
+.. code-block:: python
+    from boto3_batch_utils import DynamoBatchDispatcher
+    dy = DynamoBatchDispatcher('MyExampleDynamoTable', primary_partition_key='Id')
+    dy.submit_payload({"something": "in", "my": "message"})
+    dy.submit_payload({"tells": "me", "this": "is", "easy": True})
+    dy.flush_payloads()
+
+
+*Cloudwatch Put Metrics*
+
 Batch put metric data to Cloudwatch. CLoudwatch comes with a handy dimension builder function `cloudwatch_dimension` to help you construct dimensions
-```
-from boto3_batch_utils import CloudwatchBatchDispatcher, cloudwatch_dimension
-cw = CloudwatchBatchDispatcher('TEST_JUNK')
-cw.submit_payload('RANDOM_METRIC', dimensions=cloudwatch_dimension('dimA', '12345'), value=555, unit='Count')
-cw.submit_payload('RANDOM_METRIC', dimensions=cloudwatch_dimension('dimA', '12345'), value=1234, unit='Count')
-cw.flush_payloads()
-```
 
-#### SQS Send Messages
+.. code-block:: python
+    from boto3_batch_utils import CloudwatchBatchDispatcher, cloudwatch_dimension
+    cw = CloudwatchBatchDispatcher('TEST_JUNK')
+    cw.submit_payload('RANDOM_METRIC', dimensions=cloudwatch_dimension('dimA', '12345'), value=555, unit='Count')
+    cw.submit_payload('RANDOM_METRIC', dimensions=cloudwatch_dimension('dimA', '12345'), value=1234, unit='Count')
+    cw.flush_payloads()
+
+
+*SQS Send Messages*
 Batch send messages to an SQS queue
-```
-from boto3_batch_utils import SQSBatchDispatcher
-sqs = SQSBatchDispatcher("aQueueWithAName")
-sqs.submit_payload("some message of some sort")
-sqs.submit_payload("a different message, probably a similar sort")
-sqs.flush_payloads()
-```
+
+.. code-block:: python
+    from boto3_batch_utils import SQSBatchDispatcher
+    sqs = SQSBatchDispatcher("aQueueWithAName")
+    sqs.submit_payload("some message of some sort")
+    sqs.submit_payload("a different message, probably a similar sort")
+    sqs.flush_payloads()
