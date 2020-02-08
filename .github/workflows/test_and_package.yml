@@ -25,7 +25,7 @@ jobs:
       uses: actions/upload-artifact@master
       with:
         name: flake8-results
-        path: flake8/**
+        path: flake8
       # Use always() to always run this step to publish test results when there are test failures
       if: always()
     - name: Test with nose
