@@ -27,7 +27,7 @@ class SubmitPayload(TestCase):
         dy = DynamoBatchDispatcher('test_table_name', 'p_key', max_batch_size=1, flush_payload_on_max_batch_size=False)
         test_payload = {'p_key': 1}
         mock_convert_decimals.return_value = test_payload
-        dy.submit_payload(test_payload, partition_key_location=None)
+        dy.submit_payload(test_payload)
         mock_submit_payload.assert_called_once_with({"PutRequest": {"Item": test_payload}})
 
     def test_where_key_requires_mapping(self, mock_submit_payload, mock_convert_decimals):
@@ -64,7 +64,7 @@ class BatchSendPayloads(TestCase):
 
     def test(self, mock_batch_send_payloads):
         dy = DynamoBatchDispatcher('test_table_name', 'p_key', max_batch_size=1, flush_payload_on_max_batch_size=False)
-        test_batch = "a_test"
+        test_batch = {'a_test': True}
         dy._batch_send_payloads(test_batch)
         mock_batch_send_payloads.assert_called_once_with({'RequestItems': {'test_table_name': test_batch}})
 

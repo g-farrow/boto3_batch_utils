@@ -12,16 +12,16 @@ class DynamoBatchDispatcher(BaseDispatcher):
     Control the submission of writes to DynamoDB
     """
 
-    def __init__(self, dynamo_table_name, primary_partition_key, partition_key_data_type=str,
-                 max_batch_size=25, flush_payload_on_max_batch_size=True):
+    def __init__(self, dynamo_table_name: str, partition_key: str, partition_key_data_type: type = str,
+                 max_batch_size: int = 25, flush_payload_on_max_batch_size: bool = True):
         self.dynamo_table_name = dynamo_table_name
-        self.primary_partition_key = primary_partition_key
+        self.partition_key = partition_key
         self.partition_key_data_type = partition_key_data_type
-        super().__init__('dynamodb', 'batch_write_item', batch_size=max_batch_size,
+        super().__init__('dynamodb', batch_dispatch_method='batch_write_item', batch_size=max_batch_size,
                          flush_payload_on_max_batch_size=flush_payload_on_max_batch_size)
-        self.dynamo_table = self._subject.Table(self.dynamo_table_name)
+        self.dynamo_table = self._aws_service.Table(self.dynamo_table_name)
 
-    def _send_individual_payload(self, payload, retry=4):
+    def _send_individual_payload(self, payload: dict, retry: int = 4):
         """
         Write an individual record to Dynamo
         :param payload: JSON representation of a new record to write to the Dynamo table
@@ -38,7 +38,7 @@ class DynamoBatchDispatcher(BaseDispatcher):
                 logger.debug(f"Failed payload: {payload}")
                 raise
 
-    def _process_batch_send_response(self, response):
+    def _process_batch_send_response(self, response: dict):
         """
         Parse the response from a batch_write call, handle any failures as required.
         :param response: Response JSON from a batch_write_item request
@@ -53,7 +53,7 @@ class DynamoBatchDispatcher(BaseDispatcher):
                 else:
                     raise TypeError("Individual write type is not supported")
 
-    def _batch_send_payloads(self, batch=None, **kwargs):
+    def _batch_send_payloads(self, batch: dict = None, **kwargs):
         """
         Submit the batch to DynamoDB
         """
@@ -68,14 +68,14 @@ class DynamoBatchDispatcher(BaseDispatcher):
         """
         super().flush_payloads()
 
-    def submit_payload(self, payload, partition_key_location="Id"):
+    def submit_payload(self, payload, partition_key_location: str = "Id"):
         """
         Submit a record ready for batch sending to DynamoDB
         """
-        logger.debug(f"Payload submitted to {self._subject_name} dispatcher: {payload}")
-        if self.primary_partition_key not in payload.keys():
-            payload[self.primary_partition_key] = self.partition_key_data_type(payload[partition_key_location])
-        if not any(d["PutRequest"]["Item"][self.primary_partition_key] == payload[self.primary_partition_key]
+        logger.debug(f"Payload submitted to {self._aws_service_name} dispatcher: {payload}")
+        if self.partition_key not in payload.keys():
+            payload[self.partition_key] = self.partition_key_data_type(payload[partition_key_location])
+        if not any(d["PutRequest"]["Item"][self.partition_key] == payload[self.partition_key]
                    for d in self._payload_list):
             super().submit_payload({
                 "PutRequest": {
@@ -84,5 +84,5 @@ class DynamoBatchDispatcher(BaseDispatcher):
             })
         else:
             logger.warning("The candidate payload has a primary_partition_key which already exists in the "
-                           "payload_list: {payload}")
-        self._flush_payload_selector()  # I think this is unnecessary... it should get called in the base method
+                           f"payload_list: {payload}")
+        self._flush_payload_selector()

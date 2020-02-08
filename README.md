@@ -27,7 +27,7 @@ kn.flush_payloads()
 Batch write records to a DynamoDB table
 ```python
 from boto3_batch_utils import DynamoBatchDispatcher
-dy = DynamoBatchDispatcher('MyExampleDynamoTable', primary_partition_key='Id')
+dy = DynamoBatchDispatcher('MyExampleDynamoTable', partition_key='Id')
 dy.submit_payload({"something": "in", "my": "message"})
 dy.submit_payload({"tells": "me", "this": "is", "easy": True})
 dy.flush_payloads()

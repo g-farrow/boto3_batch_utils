@@ -14,20 +14,21 @@ class KinesisBatchDispatcher(BaseDispatcher):
     Manage the batch 'put' of Kinesis records
     """
 
-    def __init__(self, stream_name, partition_key_identifier='Id', max_batch_size=250,
-                 flush_payload_on_max_batch_size=True):
+    def __init__(self, stream_name: str, partition_key_identifier: str = 'Id', max_batch_size: int = 250,
+                 flush_payload_on_max_batch_size: bool = True):
         self.stream_name = stream_name
         self.partition_key_identifier = partition_key_identifier
         self.batch_in_progress = []
-        super().__init__('kinesis', 'put_records', 'put_record', max_batch_size, flush_payload_on_max_batch_size)
+        super().__init__('kinesis', batch_dispatch_method='put_records', individual_dispatch_method='put_record',
+                         batch_size=max_batch_size, flush_payload_on_max_batch_size=flush_payload_on_max_batch_size)
 
-    def _send_individual_payload(self, payload, retry=5):
+    def _send_individual_payload(self, payload: dict, retry: int = 5):
         """ Send an individual payload to Kinesis """
         _payload = payload
         _payload['StreamName'] = self.stream_name
         super()._send_individual_payload(_payload)
 
-    def _process_failed_payloads(self, response):
+    def _process_failed_payloads(self, response: dict):
         """ Process the contents of a Put Records response when it contains failed records """
         i = 0
         failed_records = []
@@ -50,11 +51,10 @@ class KinesisBatchDispatcher(BaseDispatcher):
                 self._batch_send_payloads(batch_of_problematic_records)
         self.batch_in_progress = None
 
-    def _process_batch_send_response(self, response):
+    def _process_batch_send_response(self, response: dict):
         """
         Method to send a set of messages on to the Kinesis stream
-        :param batch: List - messages to be sent
-        :param nested: bool - Used for recursion identification. Do not override.
+        :param response: Response from the AWS service
         """
         logger.debug(f"Processing response: {response}")
         if "Records" in response:
@@ -67,7 +67,7 @@ class KinesisBatchDispatcher(BaseDispatcher):
                 logger.info(f"Failed payloads detected ({response['FailedRecordCount']}), processing errors...")
                 self._process_failed_payloads(response)
 
-    def _batch_send_payloads(self, batch=None, **kwargs):
+    def _batch_send_payloads(self, batch: (list, dict) = None, **kwargs):
         """ Attempt to send a single batch of metrics to Kinesis """
         if 'retry' in kwargs:
             self.batch_in_progress = batch['Records']
@@ -80,9 +80,9 @@ class KinesisBatchDispatcher(BaseDispatcher):
         """ Push all metrics in the payload list to Kinesis """
         super().flush_payloads()
 
-    def submit_payload(self, payload):
+    def submit_payload(self, payload: dict):
         """ Submit a metric ready to be batched up and sent to Kinesis """
-        logger.debug(f"Payload submitted to {self._subject_name} dispatcher: {payload}")
+        logger.debug(f"Payload submitted to {self._aws_service_name} dispatcher: {payload}")
         constructed_payload = {
             'Data': dumps(payload, cls=DecimalEncoder),
             'PartitionKey': f'{payload[self.partition_key_identifier]}'

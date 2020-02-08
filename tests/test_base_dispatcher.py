@@ -31,8 +31,8 @@ class Initialise(TestCase):
     def test_init(self):
         base = BaseDispatcher('test_subject', 'send_lots', 'send_one', batch_size=1,
                               flush_payload_on_max_batch_size=False)
-        self.assertEqual('test_subject', base._subject_name)
-        self.assertEqual('test_subject_client', base._subject.client_name)
+        self.assertEqual('test_subject', base._aws_service_name)
+        self.assertEqual('test_subject_client', base._aws_service.client_name)
         self.assertEqual('send_lots', base._batch_dispatch_method.__name__)
         self.assertEqual('send_one', base._individual_dispatch_method.__name__)
         self.assertEqual(1, base.max_batch_size)
