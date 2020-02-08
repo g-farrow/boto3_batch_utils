@@ -1,9 +1,10 @@
-from boto3_batch_utils import logger
+import logging
 from json import dumps
 
 from boto3_batch_utils.Base import BaseDispatcher
 from boto3_batch_utils.utils import DecimalEncoder
 
+logger = logging.getLogger('boto3-batch-utils')
 
 kinesis_max_batch_size = 250
 
@@ -31,17 +32,16 @@ class KinesisBatchDispatcher(BaseDispatcher):
         i = 0
         failed_records = []
         for r in response["Records"]:
-            logger.debug("Response: {}".format(r))
+            logger.debug(f"Response: {r}")
             if "ErrorCode" in r:
-                logger.warning("Payload failed to be sent to Kinesis. Message content: {}".format(r))
+                logger.warning(f"Payload failed to be sent to Kinesis. Message content: {r}")
                 failed_records.append(i)
             i += 1
         successful_message_count = len(self.batch_in_progress) - len(failed_records)
         if successful_message_count:
-            logger.info("Sent messages to kinesis {}".format(successful_message_count))
+            logger.info(f"Sent messages to kinesis {successful_message_count}")
         if failed_records:
-            logger.debug(
-                "Failed Records: {}".format(response["FailedRecordCount"]))
+            logger.debug(f"Failed Records: {response['FailedRecordCount']}")
             batch_of_problematic_records = [self.batch_in_progress[i] for i in failed_records]
             if len(failed_records) <= 2:
                 for payload in batch_of_problematic_records:
@@ -56,15 +56,15 @@ class KinesisBatchDispatcher(BaseDispatcher):
         :param batch: List - messages to be sent
         :param nested: bool - Used for recursion identification. Do not override.
         """
-        logger.debug("Processing response: {}".format(response))
+        logger.debug(f"Processing response: {response}")
         if "Records" in response:
             if response["FailedRecordCount"] == 0:
-                logger.info("{} records successfully batch sent to Kinesis::{}".format(len(self.batch_in_progress),
-                                                                                       self.stream_name))
+                logger.info(f"{len(self.batch_in_progress)} records successfully batch "
+                            f"sent to Kinesis::{self.stream_name}")
                 self.batch_in_progress = None
                 return
             else:
-                logger.info("Failed payloads detected ({}), processing errors...".format(response["FailedRecordCount"]))
+                logger.info(f"Failed payloads detected ({response['FailedRecordCount']}), processing errors...")
                 self._process_failed_payloads(response)
 
     def _batch_send_payloads(self, batch=None, **kwargs):
@@ -82,9 +82,9 @@ class KinesisBatchDispatcher(BaseDispatcher):
 
     def submit_payload(self, payload):
         """ Submit a metric ready to be batched up and sent to Kinesis """
-        logger.debug("Payload submitted to {} dispatcher: {}".format(self._subject_name, payload))
+        logger.debug(f"Payload submitted to {self._subject_name} dispatcher: {payload}")
         constructed_payload = {
             'Data': dumps(payload, cls=DecimalEncoder),
-            'PartitionKey': '{}'.format(payload[self.partition_key_identifier])
+            'PartitionKey': f'{payload[self.partition_key_identifier]}'
         }
         super().submit_payload(constructed_payload)

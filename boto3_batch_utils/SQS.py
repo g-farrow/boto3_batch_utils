@@ -1,6 +1,8 @@
-from boto3_batch_utils import logger
+import logging
 from uuid import uuid4
 from boto3_batch_utils.Base import BaseDispatcher
+
+logger = logging.getLogger('boto3-batch-utils')
 
 
 class SQSBatchDispatcher(BaseDispatcher):
@@ -24,14 +26,14 @@ class SQSBatchDispatcher(BaseDispatcher):
 
     def _process_batch_send_response(self, response):
         """ Process the response data from a batch put request """
-        logger.debug("Processing response: {}".format(response))
+        logger.debug(f"Processing response: {response}")
         if "Failed" in response:
-            logger.info("Failed payloads detected ({}), processing errors...".format(len(response["Failed"])))
+            logger.info(f"Failed payloads detected ({len(response['Failed'])}), processing errors...")
             for failed_payload_response in response['Failed']:
-                logger.debug("Message failed with following error: {}".format(failed_payload_response['Message']))
+                logger.debug(f"Message failed with following error: {failed_payload_response['Message']}")
                 if failed_payload_response['SenderFault']:
-                    logger.warning("Message failed to send due to user error ({}): {}".format(
-                        failed_payload_response['SenderFault'], failed_payload_response['Message']))
+                    logger.warning(f"Message failed to send due to user error "
+                                   f"({failed_payload_response['SenderFault']}): {failed_payload_response['Message']}")
                 for payload in self.batch_in_progress:
                     if payload['Id'] == failed_payload_response['Id']:
                         self._send_individual_payload(payload)
@@ -50,15 +52,14 @@ class SQSBatchDispatcher(BaseDispatcher):
 
     def submit_payload(self, payload, message_id=str(uuid4()), delay_seconds=0):
         """ Submit a record ready to be batched up and sent to SQS """
-        logger.debug("Payload submitted to {} dispatcher: {}".format(self._subject_name, payload))
+        logger.debug(f"Payload submitted to {self._subject_name} dispatcher: {payload}")
         if not any(d["Id"] == message_id for d in self._payload_list):
             constructed_payload = {
                 'Id': message_id,
                 'MessageBody': str(payload),
                 'DelaySeconds': delay_seconds
                 }
-            logger.debug("SQS payload constructed: {}".format(constructed_payload))
+            logger.debug(f"SQS payload constructed: {constructed_payload}")
             super().submit_payload(constructed_payload)
         else:
-            logger.debug("Message with the provided message_id ({}) already exists in the batch, skipping...".format(
-                message_id))
+            logger.debug(f"Message with message_id ({message_id}) already exists in the batch, skipping...")

@@ -1,8 +1,10 @@
-from boto3_batch_utils import logger
+import logging
 from botocore.exceptions import ClientError
 
 from boto3_batch_utils.Base import BaseDispatcher
 from boto3_batch_utils.utils import convert_floats_in_dict_to_decimals
+
+logger = logging.getLogger('boto3-batch-utils')
 
 
 class DynamoBatchDispatcher(BaseDispatcher):
@@ -24,16 +26,16 @@ class DynamoBatchDispatcher(BaseDispatcher):
         Write an individual record to Dynamo
         :param payload: JSON representation of a new record to write to the Dynamo table
         """
-        logger.debug("Attempting to send individual payload ({} retries left): {}".format(retry, payload))
+        logger.debug(f"Attempting to send individual payload ({retry} retries left): {payload}")
         try:
             self.dynamo_table.put_item(Item=payload)
         except ClientError as e:
             if retry:
-                logger.debug("Individual send attempt has failed, retrying: {}".format(str(e)))
+                logger.debug(f"Individual send attempt has failed, retrying: {str(e)}")
                 self._send_individual_payload(payload, retry - 1)
             else:
-                logger.error("Individual send attempt has failed, no more retries remaining: {}".format(str(e)))
-                logger.debug("Failed payload: {}".format(payload))
+                logger.error(f"Individual send attempt has failed, no more retries remaining: {str(e)}")
+                logger.debug(f"Failed payload: {payload}")
                 raise
 
     def _process_batch_send_response(self, response):
@@ -43,8 +45,8 @@ class DynamoBatchDispatcher(BaseDispatcher):
         """
         unprocessed_items = response['UnprocessedItems']
         if unprocessed_items:
-            logger.warning("Batch write failed to write all items, {} were rejected".format(
-                len(unprocessed_items[self.dynamo_table_name])))
+            logger.warning(f"Batch write failed to write all items, "
+                           f"{len(unprocessed_items[self.dynamo_table_name])} were rejected")
             for item in unprocessed_items[self.dynamo_table_name]:
                 if 'PutRequest' in item:
                     self._send_individual_payload(item['PutRequest']['Item'])
@@ -62,18 +64,19 @@ class DynamoBatchDispatcher(BaseDispatcher):
 
     def flush_payloads(self):
         """
-        Send any metrics remaining in the current batch bucket
+        Send any records remaining in the current batch bucket
         """
         super().flush_payloads()
 
     def submit_payload(self, payload, partition_key_location="Id"):
         """
-        Submit a metric ready for batch sending to Cloudwatch
+        Submit a record ready for batch sending to DynamoDB
         """
-        logger.debug("Payload submitted to {} dispatcher: {}".format(self._subject_name, payload))
+        logger.debug(f"Payload submitted to {self._subject_name} dispatcher: {payload}")
         if self.primary_partition_key not in payload.keys():
             payload[self.primary_partition_key] = self.partition_key_data_type(payload[partition_key_location])
-        if not any(d["PutRequest"]["Item"][self.primary_partition_key] == payload[self.primary_partition_key] for d in self._payload_list):
+        if not any(d["PutRequest"]["Item"][self.primary_partition_key] == payload[self.primary_partition_key]
+                   for d in self._payload_list):
             super().submit_payload({
                 "PutRequest": {
                     "Item": convert_floats_in_dict_to_decimals(payload)
@@ -81,5 +84,5 @@ class DynamoBatchDispatcher(BaseDispatcher):
             })
         else:
             logger.warning("The candidate payload has a primary_partition_key which already exists in the "
-                           "payload_list: {}".format(payload))
+                           "payload_list: {payload}")
         self._flush_payload_selector()  # I think this is unnecessary... it should get called in the base method

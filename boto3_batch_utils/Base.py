@@ -1,8 +1,10 @@
-from boto3_batch_utils import logger
+import logging
 import boto3
 from botocore.exceptions import ClientError
 
 from boto3_batch_utils.utils import chunks
+
+logger = logging.getLogger('boto3-batch-utils')
 
 
 _boto3_interface_type_mapper = {
@@ -38,11 +40,11 @@ class BaseDispatcher:
         self.max_batch_size = batch_size
         self.flush_payload_on_max_batch_size = flush_payload_on_max_batch_size
         self._payload_list = []
-        logger.debug("Batch dispatch manager initialised: {}".format(self._subject_name))
+        logger.debug(f"Batch dispatch manager initialised: {self._subject_name}")
 
     def _send_individual_payload(self, payload, retry=4):
         """ Send an individual payload to the subject """
-        logger.debug("Attempting to send individual payload ({} retries left): {}".format(retry, payload))
+        logger.debug(f"Attempting to send individual payload ({retry} retries left): {payload}")
         try:
             if isinstance(payload, dict):
                 logger.debug("Submitting payload as keyword args")
@@ -64,7 +66,7 @@ class BaseDispatcher:
 
     def _batch_send_payloads(self, batch, retry=4):
         """ Attempt to send a single batch of payloads to the subject """
-        logger.debug("Sending batch type {} payloads to {}".format(type(batch), self._subject_name))
+        logger.debug("Sending batch type {type(batch)} payloads to {self._subject_name}")
         try:
             if isinstance(batch, dict):
                 response = self._batch_dispatch_method(**batch)
@@ -72,44 +74,43 @@ class BaseDispatcher:
             else:
                 response = self._batch_dispatch_method(batch)
                 self._process_batch_send_response(response)
-            logger.debug("Batch send response: {}".format(response))
+            logger.debug(f"Batch send response: {response}")
         except ClientError as e:
             if retry > 0:
-                logger.warning("{} batch send has caused an error, retrying to send ({} retries remaining): {}".format(
-                    self._subject_name, retry, str(e)))
-                logger.debug("Failed batch: (type: {}) {}".format(type(batch), batch))
+                logger.warning(f"{self._subject_name} batch send has caused an error, "
+                               f"retrying to send ({retry} retries remaining): {str(e)}")
+                logger.debug(f"Failed batch: (type: {type(batch)}) {batch}")
                 self._batch_send_payloads(batch, retry=retry-1)
             else:
                 raise
 
     def flush_payloads(self):
         """ Push all payloads in the payload list to the subject """
-        logger.debug("{} payload list has {} entries".format(self._subject_name, len(self._payload_list)))
+        logger.debug(f"{self._subject_name} payload list has {len(self._payload_list)} entries")
         if self._payload_list:
-            logger.debug("Preparing to send {} records to {}".format(len(self._payload_list), self._subject_name))
+            logger.debug(f"Preparing to send {len(self._payload_list)} records to {self._subject_name}")
             batch_list = list(chunks(self._payload_list, self.max_batch_size))
-            logger.debug("Payload list split into {} batches".format(len(batch_list)))
+            logger.debug("Payload list split into {len(batch_list)} batches")
             for batch in batch_list:
                 self._batch_send_payloads(batch)
             self._payload_list = []
         else:
-            logger.info("No payloads to flush to {}".format(self._subject_name))
+            logger.info(f"No payloads to flush to {self._subject_name}")
 
     def _flush_payload_selector(self):
         """ Decide whether or not to flush the payload (usually used following a payload submission) """
-        logger.debug("Payload list now contains '{}' payloads, max batch size is '{}'".format(
-            len(self._payload_list), self.max_batch_size
-        ))
+        logger.debug(f"Payload list now contains '{len(self._payload_list)}' payloads, "
+                     f"max batch size is '{self.max_batch_size}'")
         if self.flush_payload_on_max_batch_size and len(self._payload_list) >= self.max_batch_size:
             logger.debug("Max batch size has been reached, flushing the payload list contents")
             self.flush_payloads()
         else:
-            logger.debug("Max batch size of {} for {} has not yet been reached, continuing".format(self.max_batch_size,
-                                                                                                   self._subject_name))
+            logger.debug("Max batch size of {self.max_batch_size} for {self._subject_name} "
+                         "has not yet been reached, continuing")
 
     def submit_payload(self, payload):
         """ Submit a metric ready to be batched up and sent to Cloudwatch """
         self._payload_list.append(payload)
-        logger.debug("Payload has been added to the {} dispatcher payload list: {}".format(self._subject_name, payload))
+        logger.debug("Payload has been added to the {self._subject_name} dispatcher payload list: {payload}")
         self._flush_payload_selector()
 

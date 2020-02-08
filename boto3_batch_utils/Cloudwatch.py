@@ -1,7 +1,9 @@
-from boto3_batch_utils import logger
+import logging
 from datetime import datetime
 
 from boto3_batch_utils.Base import BaseDispatcher
+
+logger = logging.getLogger('boto3-batch-utils')
 
 
 def cloudwatch_dimension(name, value):
@@ -46,7 +48,7 @@ class CloudwatchBatchDispatcher(BaseDispatcher):
                 'Value': value,
                 'Unit': unit
             }
-        logger.debug("Payload submitted to {} dispatcher: {}".format(self._subject_name, payload))
+        logger.debug("Payload submitted to {self._subject_name} dispatcher: {payload}")
         if dimensions:
             payload['Dimensions'] = dimensions if isinstance(dimensions, list) else [dimensions]
         super().submit_payload(payload)

@@ -1,6 +1,8 @@
 from decimal import Decimal
 from json import JSONEncoder
-from boto3_batch_utils import logger
+import logging
+
+logger = logging.getLogger('boto3-batch-utils')
 
 
 def chunks(array, chunk_size):
@@ -16,7 +18,7 @@ def chunks(array, chunk_size):
 
 def convert_floats_in_list_to_decimals(array, level=0):
     for i in array:
-        logger.debug("Parsing list item for decimals (level: {}): {}".format(level, i))
+        logger.debug(f"Parsing list item for decimals (level: {level}): {i}")
         if isinstance(i, float):
             array[array.index(i)] = Decimal(str(i))
         elif isinstance(i, dict):
@@ -32,19 +34,19 @@ def convert_floats_in_dict_to_decimals(record, level=0):
     :param record:
     """
     new_record = {}
-    logger.debug("Processing dict (level: {}): {}".format(level, record))
+    logger.debug(f"Processing dict (level: {level}): {record}")
     for k, v in record.items():
-        logger.debug("Parsing attribute '{}' for decimals: {} ({})".format(k, v, type(v)))
+        logger.debug(f"Parsing attribute '{k}' for decimals: {v} ({type(v)})")
         if isinstance(v, float):
             new_record[k] = Decimal(str(v))
         elif isinstance(v, dict):
             new_record[k] = convert_floats_in_dict_to_decimals(v, level=level+1)
-            logger.debug("New dict returned: {}".format(new_record[k]))
+            logger.debug(f"New dict returned: {new_record[k]}")
         elif isinstance(v, list):
             new_record[k] = convert_floats_in_list_to_decimals(v, level=level+1)
         else:
             new_record[k] = v
-        logger.debug("New dict: {}".format(new_record))
+        logger.debug(f"New dict: {new_record}")
     return new_record
 
 

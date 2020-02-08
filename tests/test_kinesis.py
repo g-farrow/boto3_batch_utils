@@ -78,35 +78,35 @@ class ProcessFailedPayloads(TestCase):
             'FailedRecordCount': 10,
             'Records': [
                 {'ErrorCode': 'ProvisionedThroughputExceededException',
-                 'ErrorMessage': 'Rate exceeded for shard shardId-000000000000 in stream {}'
-                                 ' under account {}.'.format("test_stream", "aws_account_id")},
+                 'ErrorMessage': 'Rate exceeded for shard shardId-000000000000 in test_stream'
+                                 ' under aws_account_id.'},
                 {'ErrorCode': 'ProvisionedThroughputExceededException',
-                 'ErrorMessage': 'Rate exceeded for shard shardId-000000000000 in stream {}'
-                                 ' under account {}.'.format("test_stream", "aws_account_id")},
+                 'ErrorMessage': 'Rate exceeded for shard shardId-000000000000 in test_stream'
+                                 ' under aws_account_id.'},
                 {'ErrorCode': 'ProvisionedThroughputExceededException',
-                 'ErrorMessage': 'Rate exceeded for shard shardId-000000000000 in stream {}'
-                                 ' under account {}.'.format("test_stream", "aws_account_id")},
+                 'ErrorMessage': 'Rate exceeded for shard shardId-000000000000 in test_stream'
+                                 ' under aws_account_id.'},
                 {'ErrorCode': 'ProvisionedThroughputExceededException',
-                 'ErrorMessage': 'Rate exceeded for shard shardId-000000000000 in stream {}'
-                                 ' under account {}.'.format("test_stream", "aws_account_id")},
+                 'ErrorMessage': 'Rate exceeded for shard shardId-000000000000 in test_stream'
+                                 ' under aws_account_id.'},
                 {'ErrorCode': 'ProvisionedThroughputExceededException',
-                 'ErrorMessage': 'Rate exceeded for shard shardId-000000000000 in stream {}'
-                                 ' under account {}.'.format("test_stream", "aws_account_id")},
+                 'ErrorMessage': 'Rate exceeded for shard shardId-000000000000 in test_stream'
+                                 ' under aws_account_id.'},
                 {'ErrorCode': 'ProvisionedThroughputExceededException',
-                 'ErrorMessage': 'Rate exceeded for shard shardId-000000000000 in stream {}'
-                                 ' under account {}.'.format("test_stream", "aws_account_id")},
+                 'ErrorMessage': 'Rate exceeded for shard shardId-000000000000 in test_stream'
+                                 ' under aws_account_id.'},
                 {'ErrorCode': 'ProvisionedThroughputExceededException',
-                 'ErrorMessage': 'Rate exceeded for shard shardId-000000000000 in stream {}'
-                                 ' under account {}.'.format("test_stream", "aws_account_id")},
+                 'ErrorMessage': 'Rate exceeded for shard shardId-000000000000 in test_stream'
+                                 ' under aws_account_id.'},
                 {'ErrorCode': 'ProvisionedThroughputExceededException',
-                 'ErrorMessage': 'Rate exceeded for shard shardId-000000000000 in stream {}'
-                                 ' under account {}.'.format("test_stream", "aws_account_id")},
+                 'ErrorMessage': 'Rate exceeded for shard shardId-000000000000 in test_stream'
+                                 ' under aws_account_id.'},
                 {'ErrorCode': 'ProvisionedThroughputExceededException',
-                 'ErrorMessage': 'Rate exceeded for shard shardId-000000000000 in stream {}'
-                                 ' under account {}.'.format("test_stream", "aws_account_id")},
+                 'ErrorMessage': 'Rate exceeded for shard shardId-000000000000 in test_stream'
+                                 ' under aws_account_id.'},
                 {'ErrorCode': 'ProvisionedThroughputExceededException',
-                 'ErrorMessage': 'Rate exceeded for shard shardId-000000000000 in stream {}'
-                                 ' under account {}.'.format("test_stream", "aws_account_id")}
+                 'ErrorMessage': 'Rate exceeded for shard shardId-000000000000 in test_stream'
+                                 ' under aws_account_id.'}
             ]
         }
         kn._process_failed_payloads(test_response)
@@ -135,20 +135,20 @@ class ProcessFailedPayloads(TestCase):
                 {'SequenceNumber': '49580022882545286363048362619673957077812737407434358786',
                  'ShardId': 'shardId-000000000000'},
                 {'ErrorCode': 'ProvisionedThroughputExceededException',
-                 'ErrorMessage': 'Rate exceeded for shard shardId-000000000000 in stream {}'
-                                 ' under account {}.'.format("test_stream", "aws_account_id")},
+                 'ErrorMessage': 'Rate exceeded for shard shardId-000000000000 in test_stream'
+                                 ' under aws_account_id.'},
                 {'ErrorCode': 'ProvisionedThroughputExceededException',
-                 'ErrorMessage': 'Rate exceeded for shard shardId-000000000000 in stream {}'
-                                 ' under account {}.'.format("test_stream", "aws_account_id")},
+                 'ErrorMessage': 'Rate exceeded for shard shardId-000000000000 in test_stream'
+                                 ' under aws_account_id.'},
                 {'ErrorCode': 'ProvisionedThroughputExceededException',
-                 'ErrorMessage': 'Rate exceeded for shard shardId-000000000000 in stream {}'
-                                 ' under account {}.'.format("test_stream", "aws_account_id")},
+                 'ErrorMessage': 'Rate exceeded for shard shardId-000000000000 in test_stream'
+                                 ' under aws_account_id.'},
                 {'ErrorCode': 'ProvisionedThroughputExceededException',
-                 'ErrorMessage': 'Rate exceeded for shard shardId-000000000000 in stream {}'
-                                 ' under account {}.'.format("test_stream", "aws_account_id")},
+                 'ErrorMessage': 'Rate exceeded for shard shardId-000000000000 in test_stream'
+                                 ' under aws_account_id.'},
                 {'ErrorCode': 'ProvisionedThroughputExceededException',
-                 'ErrorMessage': 'Rate exceeded for shard shardId-000000000000 in stream {}'
-                                 ' under account {}.'.format("test_stream", "aws_account_id")}
+                 'ErrorMessage': 'Rate exceeded for shard shardId-000000000000 in test_stream'
+                                 ' under aws_account_id.'}
             ]
         }
         kn._process_failed_payloads(test_response)
@@ -182,11 +182,11 @@ class ProcessFailedPayloads(TestCase):
                 {'SequenceNumber': '49580022882545286363048362619673957077812737407434358786',
                  'ShardId': 'shardId-000000000000'},
                 {'ErrorCode': 'ProvisionedThroughputExceededException',
-                 'ErrorMessage': 'Rate exceeded for shard shardId-000000000000 in stream {}'
-                                 ' under account {}.'.format("test_stream", "aws_account_id")},
+                 'ErrorMessage': 'Rate exceeded for shard shardId-000000000000 in test_stream'
+                                 ' under aws_account_id.'},
                 {'ErrorCode': 'ProvisionedThroughputExceededException',
-                 'ErrorMessage': 'Rate exceeded for shard shardId-000000000000 in stream {}'
-                                 ' under account {}.'.format("test_stream", "aws_account_id")}
+                 'ErrorMessage': 'Rate exceeded for shard shardId-000000000000 in test_stream'
+                                 ' under aws_account_id.'}
             ]
         }
         kn._process_failed_payloads(test_response)
