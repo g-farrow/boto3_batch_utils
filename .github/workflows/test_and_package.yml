@@ -19,15 +19,7 @@ jobs:
     - name: Lint with flake8
       run: |
         pip install flake8
-        pip install flake8-html
         flake8 . --format=html --htmldir=flake8
-    - name: Upload flake8 results
-      uses: actions/upload-artifact@master
-      with:
-        name: flake8-results
-        path: flake8
-      # Use always() to always run this step to publish test results when there are test failures
-      if: always()
     - name: Test with nose
       run: |
         pip install nose

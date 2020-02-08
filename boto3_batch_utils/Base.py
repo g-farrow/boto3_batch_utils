@@ -58,7 +58,7 @@ class BaseDispatcher:
                 self._send_individual_payload(payload, retry-1)
             else:
                 logger.error("Individual send attempt has failed, no more retries remaining")
-                raise
+                raise e
 
     def _process_batch_send_response(self, response):
         """ Process the response data from a batch put request """
@@ -113,4 +113,3 @@ class BaseDispatcher:
         self._payload_list.append(payload)
         logger.debug("Payload has been added to the {self._subject_name} dispatcher payload list: {payload}")
         self._flush_payload_selector()
-
