@@ -1,7 +1,7 @@
 from unittest import TestCase
 from unittest.mock import patch
 from decimal import Decimal
-from boto3_batch_utils.utils import chunks, convert_floats_in_list_to_decimals, convert_floats_in_dict_to_decimals, DecimalEncoder
+from boto3_batch_utils.utils import chunks, convert_floats_in_list_to_decimals, convert_floats_in_dict_to_decimals
 
 
 class TestChunks(TestCase):

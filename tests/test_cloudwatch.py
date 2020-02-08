@@ -1,5 +1,5 @@
 from unittest import TestCase
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 from datetime import datetime
 
 from boto3_batch_utils.Cloudwatch import CloudwatchBatchDispatcher, cloudwatch_dimension
@@ -16,6 +16,7 @@ class MockClient:
 
 
 @patch('boto3_batch_utils.Base.boto3.client', MockClient)
+@patch('boto3_batch_utils.Base.boto3', Mock())
 @patch.object(BaseDispatcher, 'submit_payload')
 class SubmitPayload(TestCase):
 
@@ -36,6 +37,7 @@ class SubmitPayload(TestCase):
 
 
 @patch('boto3_batch_utils.Base.boto3.client', MockClient)
+@patch('boto3_batch_utils.Base.boto3', Mock())
 @patch.object(BaseDispatcher, 'flush_payloads')
 class FlushPayloads(TestCase):
 
@@ -46,6 +48,7 @@ class FlushPayloads(TestCase):
 
 
 @patch('boto3_batch_utils.Base.boto3.client', MockClient)
+@patch('boto3_batch_utils.Base.boto3', Mock())
 @patch.object(BaseDispatcher, '_batch_send_payloads')
 class BatchSendPayloads(TestCase):
 

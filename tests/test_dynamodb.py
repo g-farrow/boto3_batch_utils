@@ -18,6 +18,7 @@ class MockClient:
 
 
 @patch('boto3_batch_utils.Base.boto3.client', MockClient)
+@patch('boto3_batch_utils.Base.boto3', Mock())
 @patch('boto3_batch_utils.utils.convert_floats_in_dict_to_decimals')
 @patch.object(BaseDispatcher, 'submit_payload')
 class SubmitPayload(TestCase):
@@ -46,6 +47,7 @@ class SubmitPayload(TestCase):
 
 
 @patch('boto3_batch_utils.Base.boto3.client', MockClient)
+@patch('boto3_batch_utils.Base.boto3', Mock())
 @patch.object(BaseDispatcher, 'flush_payloads')
 class FlushPayloads(TestCase):
 
@@ -56,6 +58,7 @@ class FlushPayloads(TestCase):
 
 
 @patch('boto3_batch_utils.Base.boto3.client', MockClient)
+@patch('boto3_batch_utils.Base.boto3', Mock())
 @patch.object(BaseDispatcher, '_batch_send_payloads')
 class BatchSendPayloads(TestCase):
 
@@ -67,6 +70,7 @@ class BatchSendPayloads(TestCase):
 
 
 @patch('boto3_batch_utils.Base.boto3.client', MockClient)
+@patch('boto3_batch_utils.Base.boto3', Mock())
 @patch.object(BaseDispatcher, '_process_batch_send_response')
 class ProcessBatchSendResponse(TestCase):
 
@@ -106,6 +110,7 @@ class ProcessBatchSendResponse(TestCase):
 
 
 @patch('boto3_batch_utils.Base.boto3.client', MockClient)
+@patch('boto3_batch_utils.Base.boto3', Mock())
 class SendIndividualPayload(TestCase):
 
     def test(self):

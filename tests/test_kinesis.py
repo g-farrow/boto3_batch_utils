@@ -20,6 +20,7 @@ class MockClient:
 
 
 @patch('boto3_batch_utils.Base.boto3.client', MockClient)
+@patch('boto3_batch_utils.Base.boto3', Mock())
 @patch('boto3_batch_utils.Kinesis.DecimalEncoder')
 @patch('boto3_batch_utils.Kinesis.dumps')
 @patch.object(BaseDispatcher, 'submit_payload')
@@ -40,6 +41,7 @@ class SubmitPayload(TestCase):
 
 
 @patch('boto3_batch_utils.Base.boto3.client', MockClient)
+@patch('boto3_batch_utils.Base.boto3', Mock())
 @patch.object(BaseDispatcher, 'flush_payloads')
 class FlushPayloads(TestCase):
 
@@ -51,6 +53,7 @@ class FlushPayloads(TestCase):
 
 
 @patch('boto3_batch_utils.Base.boto3.client', MockClient)
+@patch('boto3_batch_utils.Base.boto3', Mock())
 @patch.object(BaseDispatcher, '_batch_send_payloads')
 class BatchSendPayloads(TestCase):
 
@@ -63,6 +66,7 @@ class BatchSendPayloads(TestCase):
 
 
 @patch('boto3_batch_utils.Base.boto3.client', MockClient)
+@patch('boto3_batch_utils.Base.boto3', Mock())
 class ProcessFailedPayloads(TestCase):
 
     def test_all_records_failed_in_first_batch_and_are_re_submitted(self):
@@ -197,6 +201,7 @@ class ProcessFailedPayloads(TestCase):
 
 
 @patch('boto3_batch_utils.Base.boto3.client', MockClient)
+@patch('boto3_batch_utils.Base.boto3', Mock())
 class ProcessBatchSendResponse(TestCase):
 
     def test_no_records_attribute_in_response(self):
@@ -267,6 +272,7 @@ class ProcessBatchSendResponse(TestCase):
 
 
 @patch('boto3_batch_utils.Base.boto3.client', MockClient)
+@patch('boto3_batch_utils.Base.boto3', Mock())
 @patch.object(BaseDispatcher, '_send_individual_payload')
 class SendIndividualPayload(TestCase):
 

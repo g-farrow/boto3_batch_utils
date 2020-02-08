@@ -17,6 +17,7 @@ class MockClient:
     def send_one(self, payload):
         pass
 
+
 mock_boto3_interface_type_mapper = {
     'test_subject': 'client'
 }
@@ -24,10 +25,10 @@ mock_boto3_interface_type_mapper = {
 
 @patch('boto3_batch_utils.Base._boto3_interface_type_mapper', mock_boto3_interface_type_mapper)
 @patch('boto3_batch_utils.Base.boto3.client', MockClient)
+@patch('boto3_batch_utils.Base.boto3', Mock())
 class Initialise(TestCase):
 
     def test_init(self):
-        # mock_boto3 = Mock()
         base = BaseDispatcher('test_subject', 'send_lots', 'send_one', batch_size=1,
                               flush_payload_on_max_batch_size=False)
         self.assertEqual('test_subject', base._subject_name)
@@ -41,6 +42,7 @@ class Initialise(TestCase):
 
 @patch('boto3_batch_utils.Base._boto3_interface_type_mapper', mock_boto3_interface_type_mapper)
 @patch('boto3_batch_utils.Base.boto3.client', MockClient)
+@patch('boto3_batch_utils.Base.boto3', Mock())
 class SubmitPayload(TestCase):
 
     def test_when_payload_list_is_empty(self):
@@ -66,6 +68,7 @@ class SubmitPayload(TestCase):
 
 @patch('boto3_batch_utils.Base._boto3_interface_type_mapper', mock_boto3_interface_type_mapper)
 @patch('boto3_batch_utils.Base.boto3.client', MockClient)
+@patch('boto3_batch_utils.Base.boto3', Mock())
 class PayloadSelectorWhenFlushOnMaxIsTrue(TestCase):
 
     def test_empty_payload_list(self):
@@ -103,6 +106,7 @@ class PayloadSelectorWhenFlushOnMaxIsTrue(TestCase):
 
 @patch('boto3_batch_utils.Base._boto3_interface_type_mapper', mock_boto3_interface_type_mapper)
 @patch('boto3_batch_utils.Base.boto3.client', MockClient)
+@patch('boto3_batch_utils.Base.boto3', Mock())
 class PayloadSelectorWhenFlushOnMaxIsFalse(TestCase):
 
     def test_empty_payload_list(self):
@@ -140,6 +144,7 @@ class PayloadSelectorWhenFlushOnMaxIsFalse(TestCase):
 
 @patch('boto3_batch_utils.Base._boto3_interface_type_mapper', mock_boto3_interface_type_mapper)
 @patch('boto3_batch_utils.Base.boto3.client', MockClient)
+@patch('boto3_batch_utils.Base.boto3', Mock())
 @patch('boto3_batch_utils.Base.chunks')
 class FlushPayloads(TestCase):
 
@@ -186,6 +191,7 @@ class FlushPayloads(TestCase):
 
 @patch('boto3_batch_utils.Base._boto3_interface_type_mapper', mock_boto3_interface_type_mapper)
 @patch('boto3_batch_utils.Base.boto3.client', MockClient)
+@patch('boto3_batch_utils.Base.boto3', Mock())
 class BatchSendPayloads(TestCase):
 
     def test_empty_list(self):
@@ -266,6 +272,7 @@ class BatchSendPayloads(TestCase):
 
 @patch('boto3_batch_utils.Base._boto3_interface_type_mapper', mock_boto3_interface_type_mapper)
 @patch('boto3_batch_utils.Base.boto3.client', MockClient)
+@patch('boto3_batch_utils.Base.boto3', Mock())
 class SendIndividualPayload(TestCase):
 
     def test_successful_send_non_dict(self):
