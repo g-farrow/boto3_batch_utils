@@ -1,4 +1,4 @@
-name: Boto3 Batch Utils
+name: Master Pipeline
 on:
   push:
     branches:
