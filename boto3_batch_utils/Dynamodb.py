@@ -38,7 +38,7 @@ class DynamoBatchDispatcher(BaseDispatcher):
             else:
                 logger.error(f"Individual send attempt has failed, no more retries remaining: {str(e)}")
                 logger.debug(f"Failed payload: {payload}")
-                raise
+                raise e
 
     def _process_batch_send_response(self, response: dict):
         """
@@ -94,18 +94,35 @@ class DynamoBatchDispatcher(BaseDispatcher):
         """
         logger.debug("Checking if the payload already exists in the existing batch")
         if self.sort_key:
-            pass
+            return self._check_payload_is_unique_by_partition_key_and_sort_key(payload)
         else:
-            return self._check_payload_is_unique_by_aggregate_id(payload)
+            return self._check_payload_is_unique_by_partition_key(payload)
 
-    def _check_payload_is_unique_by_aggregate_id(self, payload: dict) -> bool:
+    def _check_payload_is_unique_by_partition_key(self, payload: dict) -> bool:
         """
-        Use the aggregate id within the submitted payload to determin the payloads uniqueness, compared to existing
+        Use the partition key within the submitted payload to determine the payloads uniqueness, compared to existing
         payloads in the batch
         """
-        logger.debug("Checking if the aggregate id already exists in the existing batch")
+        logger.debug("Checking if the partition key already exists in the existing batch")
         if any(d["PutRequest"]["Item"][self.partition_key] == payload[self.partition_key]
                for d in self._payload_list):
+            logger.debug("This payload has already been submitted")
+            return False
+        else:
+            logger.debug("This payload is unique")
+            return True
+
+    def _check_payload_is_unique_by_partition_key_and_sort_key(self, payload: dict) -> bool:
+        """
+        Use the partition key AND sort key within the submitted payload to determine the payloads uniqueness,
+        compared to existing payloads in the batch
+        """
+        logger.debug("Checking if the partition key, sort key combination already exists in the existing batch")
+        if any(
+                (d["PutRequest"]["Item"][self.partition_key] == payload[self.partition_key] and
+                 d["PutRequest"]["Item"][self.sort_key] == payload[self.sort_key])
+                for d in self._payload_list
+        ):
             logger.debug("This payload has already been submitted")
             return False
         else:
