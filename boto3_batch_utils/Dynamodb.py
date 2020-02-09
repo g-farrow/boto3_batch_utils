@@ -75,8 +75,7 @@ class DynamoBatchDispatcher(BaseDispatcher):
         logger.debug(f"Payload submitted to {self._aws_service_name} dispatcher: {payload}")
         if self.partition_key not in payload.keys():
             payload[self.partition_key] = self.partition_key_data_type(payload[partition_key_location])
-        if not any(d["PutRequest"]["Item"][self.partition_key] == payload[self.partition_key]
-                   for d in self._payload_list):
+        if self._check_payload_is_unique(payload):
             super().submit_payload({
                 "PutRequest": {
                     "Item": convert_floats_in_dict_to_decimals(payload)
@@ -86,3 +85,17 @@ class DynamoBatchDispatcher(BaseDispatcher):
             logger.warning("The candidate payload has a primary_partition_key which already exists in the "
                            f"payload_list: {payload}")
         self._flush_payload_selector()
+
+    def _check_payload_is_unique(self, payload: dict) -> bool:
+        """
+        Check that a payload is unique, according to the partition key (and sort key if applicable)
+        :return:
+        """
+        logger.debug("Checking if the payload already exists in the existing batch")
+        if any(d["PutRequest"]["Item"][self.partition_key] == payload[self.partition_key]
+               for d in self._payload_list):
+            logger.debug("This payload has already been submitted")
+            return False
+        else:
+            logger.debug("This payload is unique")
+            return True
