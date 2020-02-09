@@ -1,3 +1,5 @@
+![Master Pipeline](https://github.com/g-farrow/boto3_batch_utils/workflows/Master%20Pipeline/badge.svg?branch=master&event=push)
+
 Boto3 Batch Utils
 =================
 This library offers some functionality to assist in writing records to AWS services in batches, where your data is not naturally batched. This helps to achieve significant efficiencies when interacting with those AWS services as batch writes are often times orders of magnitude faster than individual writes.
