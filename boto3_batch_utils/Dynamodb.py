@@ -12,10 +12,12 @@ class DynamoBatchDispatcher(BaseDispatcher):
     Control the submission of writes to DynamoDB
     """
 
-    def __init__(self, dynamo_table_name: str, partition_key: str, partition_key_data_type: type = str,
-                 max_batch_size: int = 25, flush_payload_on_max_batch_size: bool = True):
+    def __init__(self, dynamo_table_name: str, partition_key: str, sort_key: str = None,
+                 partition_key_data_type: type = str, max_batch_size: int = 25,
+                 flush_payload_on_max_batch_size: bool = True):
         self.dynamo_table_name = dynamo_table_name
         self.partition_key = partition_key
+        self.sort_key = sort_key
         self.partition_key_data_type = partition_key_data_type
         super().__init__('dynamodb', batch_dispatch_method='batch_write_item', batch_size=max_batch_size,
                          flush_payload_on_max_batch_size=flush_payload_on_max_batch_size)
@@ -89,9 +91,19 @@ class DynamoBatchDispatcher(BaseDispatcher):
     def _check_payload_is_unique(self, payload: dict) -> bool:
         """
         Check that a payload is unique, according to the partition key (and sort key if applicable)
-        :return:
         """
         logger.debug("Checking if the payload already exists in the existing batch")
+        if self.sort_key:
+            pass
+        else:
+            return self._check_payload_is_unique_by_aggregate_id(payload)
+
+    def _check_payload_is_unique_by_aggregate_id(self, payload: dict) -> bool:
+        """
+        Use the aggregate id within the submitted payload to determin the payloads uniqueness, compared to existing
+        payloads in the batch
+        """
+        logger.debug("Checking if the aggregate id already exists in the existing batch")
         if any(d["PutRequest"]["Item"][self.partition_key] == payload[self.partition_key]
                for d in self._payload_list):
             logger.debug("This payload has already been submitted")
