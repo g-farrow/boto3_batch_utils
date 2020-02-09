@@ -48,16 +48,3 @@ jobs:
       run: |
         python setup.py sdist bdist_wheel
         twine upload dist/*
-
-  docs:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v1
-    - name: Install Dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install sphinx_rtd_theme
-    - uses: ammaraskar/sphinx-action@master
-      with:
-        docs-folder: "docs/"
-        repo-token: "${{ secrets.GITHUB_TOKEN }}"
