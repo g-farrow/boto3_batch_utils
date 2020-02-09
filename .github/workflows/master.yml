@@ -1,5 +1,8 @@
 name: Boto3 Batch Utils
-on: [push]
+on:
+  push:
+    branches:
+      - 'master'
 
 jobs:
   test:
