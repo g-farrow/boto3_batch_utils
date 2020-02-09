@@ -2,7 +2,9 @@ name: Branch Pipeline
 on:
   push:
     branches:
-      - '!master'
+      - '*'         # matches every branch
+      - '*/*'       # matches every branch containing a single '/'
+      - '!master'   # excludes master
 
 jobs:
   test:
