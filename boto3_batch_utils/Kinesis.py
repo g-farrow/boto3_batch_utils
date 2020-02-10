@@ -3,6 +3,7 @@ from json import dumps
 
 from boto3_batch_utils.Base import BaseDispatcher
 from boto3_batch_utils.utils import DecimalEncoder
+from boto3_batch_utils.constants import KINESIS_BATCH_MAX_BYTES, KINESIS_BATCH_MAX_PAYLOADS, KINESIS_MESSAGE_MAX_BYTES
 
 logger = logging.getLogger('boto3-batch-utils')
 
@@ -20,7 +21,11 @@ class KinesisBatchDispatcher(BaseDispatcher):
         self.partition_key_identifier = partition_key_identifier
         self.batch_in_progress = []
         super().__init__('kinesis', batch_dispatch_method='put_records', individual_dispatch_method='put_record',
-                         batch_size=max_batch_size, flush_payload_on_max_batch_size=flush_payload_on_max_batch_size)
+                         max_batch_size=max_batch_size, flush_payload_on_max_batch_size=flush_payload_on_max_batch_size)
+        self._aws_service_batch_max_payloads = KINESIS_BATCH_MAX_PAYLOADS
+        self._aws_service_message_max_bytes = KINESIS_MESSAGE_MAX_BYTES
+        self._aws_service_batch_max_bytes = KINESIS_BATCH_MAX_BYTES
+        self._validate_initialisation()
 
     def _send_individual_payload(self, payload: dict, retry: int = 5):
         """ Send an individual payload to Kinesis """

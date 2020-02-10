@@ -1,6 +1,7 @@
 from decimal import Decimal
 from json import JSONEncoder
 import logging
+import json
 
 logger = logging.getLogger('boto3-batch-utils')
 
@@ -61,3 +62,17 @@ class DecimalEncoder(JSONEncoder):
             else:
                 return int(o)
         return super().default(o)
+
+
+def get_byte_size_of_string(string: str) -> int:
+    """
+    Return the number of bytes of a string
+    """
+    return len(string.encode('utf-8'))
+
+
+def get_byte_size_of_dict_or_list(d: dict) -> int:
+    """
+    Return the number of bytes of a string
+    """
+    return get_byte_size_of_string(json.dumps(d))

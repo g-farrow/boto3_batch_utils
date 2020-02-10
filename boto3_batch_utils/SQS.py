@@ -12,11 +12,15 @@ class SQSBatchDispatcher(BaseDispatcher):
 
     def __init__(self, queue_name, max_batch_size=10, flush_payload_on_max_batch_size=True):
         self.queue_name = queue_name
-        super().__init__('sqs', batch_dispatch_method='send_message_batch', individual_dispatch_method='send_message',
-                         batch_size=max_batch_size, flush_payload_on_max_batch_size=flush_payload_on_max_batch_size)
         self.queue_url = None
         self.batch_in_progress = None
         self.fifo_queue = False
+        super().__init__('sqs', batch_dispatch_method='send_message_batch', individual_dispatch_method='send_message',
+                         max_batch_size=max_batch_size, flush_payload_on_max_batch_size=flush_payload_on_max_batch_size)
+        self._aws_service_batch_max_payloads = None
+        self._aws_service_message_max_bytes = None
+        self._aws_service_batch_max_bytes = None
+        self._validate_initialisation()
 
     def _send_individual_payload(self, payload: dict, retry: int = 5):
         """ Send an individual record to SQS """

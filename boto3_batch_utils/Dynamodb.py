@@ -3,6 +3,8 @@ from botocore.exceptions import ClientError
 
 from boto3_batch_utils.Base import BaseDispatcher
 from boto3_batch_utils.utils import convert_floats_in_dict_to_decimals
+from boto3_batch_utils.constants import DYNAMODB_BATCH_MAX_BYTES, DYNAMODB_BATCH_MAX_PAYLOADS, \
+    DYNAMODB_MESSAGE_MAX_BYTES
 
 logger = logging.getLogger('boto3-batch-utils')
 
@@ -19,9 +21,13 @@ class DynamoBatchDispatcher(BaseDispatcher):
         self.partition_key = partition_key
         self.sort_key = sort_key
         self.partition_key_data_type = partition_key_data_type
-        super().__init__('dynamodb', batch_dispatch_method='batch_write_item', batch_size=max_batch_size,
-                         flush_payload_on_max_batch_size=flush_payload_on_max_batch_size)
         self._dynamo_table = None
+        super().__init__('dynamodb', batch_dispatch_method='batch_write_item', max_batch_size=max_batch_size,
+                         flush_payload_on_max_batch_size=flush_payload_on_max_batch_size)
+        self._aws_service_batch_max_payloads = DYNAMODB_BATCH_MAX_PAYLOADS
+        self._aws_service_message_max_bytes = DYNAMODB_MESSAGE_MAX_BYTES
+        self._aws_service_batch_max_bytes = DYNAMODB_BATCH_MAX_BYTES
+        self._validate_initialisation()
 
     def _initialise_aws_client(self):
         """
