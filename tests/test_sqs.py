@@ -1,7 +1,7 @@
 from unittest import TestCase
 from unittest.mock import patch, Mock, call
 
-from boto3_batch_utils.SQS import SQSBatchDispatcher
+from boto3_batch_utils.SQS import SQSBatchDispatcher, SQSFifoBatchDispatcher
 from boto3_batch_utils.Base import BaseDispatcher
 
 
@@ -22,10 +22,27 @@ class MockClient:
 
 @patch('boto3_batch_utils.Base.boto3.client', MockClient)
 @patch('boto3_batch_utils.Base.boto3', Mock())
+class TestInit(TestCase):
+
+    def test_standard_queue_type_initialisation(self):
+        sqs = SQSBatchDispatcher('test_queue', max_batch_size=1, flush_payload_on_max_batch_size=False)
+        self.assertIsNone(sqs.queue_url)
+        self.assertIsNone(sqs.batch_in_progress)
+        self.assertFalse(sqs.fifo_queue)
+
+    def test_fifo_queue_type_initialisation(self):
+        sqs = SQSFifoBatchDispatcher('test_queue', max_batch_size=1, flush_payload_on_max_batch_size=False)
+        self.assertIsNone(sqs.queue_url)
+        self.assertIsNone(sqs.batch_in_progress)
+        self.assertTrue(sqs.fifo_queue)
+
+
+@patch('boto3_batch_utils.Base.boto3.client', MockClient)
+@patch('boto3_batch_utils.Base.boto3', Mock())
 @patch.object(BaseDispatcher, 'submit_payload')
 class SubmitPayload(TestCase):
 
-    def test(self, mock_submit_payload):
+    def test_standard_queue_with_delay_seconds(self, mock_submit_payload):
         sqs = SQSBatchDispatcher('test_queue', max_batch_size=1, flush_payload_on_max_batch_size=False)
         test_message = {'something': 'else'}
         test_id = 123
@@ -33,6 +50,24 @@ class SubmitPayload(TestCase):
         sqs.submit_payload(test_message, test_id, test_delay)
         mock_submit_payload.assert_called_once_with(
             {'Id': test_id, 'MessageBody': str(test_message), 'DelaySeconds': test_delay}
+        )
+
+    def test_standard_queue_without_delay_seconds(self, mock_submit_payload):
+        sqs = SQSBatchDispatcher('test_queue', max_batch_size=1, flush_payload_on_max_batch_size=False)
+        test_message = {'something': 'else'}
+        test_id = 123
+        sqs.submit_payload(test_message, test_id)
+        mock_submit_payload.assert_called_once_with(
+            {'Id': test_id, 'MessageBody': str(test_message)}
+        )
+
+    def test_fifo_queue(self, mock_submit_payload):
+        sqs = SQSFifoBatchDispatcher('test_queue', max_batch_size=1, flush_payload_on_max_batch_size=False)
+        test_message = {'something': 'else'}
+        test_id = 123
+        sqs.submit_payload(test_message, test_id)
+        mock_submit_payload.assert_called_once_with(
+            {'Id': test_id, 'MessageBody': str(test_message)}
         )
 
 
@@ -159,7 +194,7 @@ class ProcessFailedPayloads(TestCase):
 @patch.object(BaseDispatcher, '_send_individual_payload')
 class SendIndividualPayload(TestCase):
 
-    def test(self, mock_send_individual_payload):
+    def test_standard_queue_with_delay_seconds(self, mock_send_individual_payload):
         sqs = SQSBatchDispatcher('test_queue', max_batch_size=1, flush_payload_on_max_batch_size=False)
         sqs.queue_url = 'test_url'
         test_payload = {
@@ -172,3 +207,24 @@ class SendIndividualPayload(TestCase):
                                       "DelaySeconds": 99}
         mock_send_individual_payload.assert_called_once_with(expected_converted_payload, retry=4)
 
+    def test_standard_queue_without_delay_seconds(self, mock_send_individual_payload):
+        sqs = SQSBatchDispatcher('test_queue', max_batch_size=1, flush_payload_on_max_batch_size=False)
+        sqs.queue_url = 'test_url'
+        test_payload = {
+            'Id': 12345,
+            'MessageBody': "some_sort_of_payload"
+            }
+        sqs._send_individual_payload(test_payload)
+        expected_converted_payload = {"QueueUrl": "test_url", "MessageBody": "some_sort_of_payload"}
+        mock_send_individual_payload.assert_called_once_with(expected_converted_payload, retry=4)
+
+    def test_fifo_queue(self, mock_send_individual_payload):
+        sqs = SQSFifoBatchDispatcher('test_queue', max_batch_size=1, flush_payload_on_max_batch_size=False)
+        sqs.queue_url = 'test_url'
+        test_payload = {
+            'Id': 12345,
+            'MessageBody': "some_sort_of_payload"
+            }
+        sqs._send_individual_payload(test_payload)
+        expected_converted_payload = {"QueueUrl": "test_url", "MessageBody": "some_sort_of_payload"}
+        mock_send_individual_payload.assert_called_once_with(expected_converted_payload, retry=4)
