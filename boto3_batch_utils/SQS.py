@@ -16,12 +16,15 @@ class SQSBatchDispatcher(BaseDispatcher):
                          batch_size=max_batch_size, flush_payload_on_max_batch_size=flush_payload_on_max_batch_size)
         self.queue_url = None
         self.batch_in_progress = None
+        self.fifo_queue = False
 
     def _send_individual_payload(self, payload: dict, retry: int = 5):
         """ Send an individual record to SQS """
+        kwargs = {'QueueUrl': self.queue_url, 'MessageBody': payload['MessageBody']}
+        if not self.fifo_queue and payload.get('DelaySeconds'):
+            kwargs['DelaySeconds'] = payload['DelaySeconds']
         super()._send_individual_payload(
-            {'QueueUrl': self.queue_url, 'MessageBody': payload['MessageBody'],
-             'DelaySeconds': payload['DelaySeconds']},
+            kwargs,
             retry=4
         )
 
@@ -51,16 +54,24 @@ class SQSBatchDispatcher(BaseDispatcher):
         """ Push all records in the payload list to SQS """
         super().flush_payloads()
 
-    def submit_payload(self, payload: dict, message_id=str(uuid4()), delay_seconds=0):
+    def submit_payload(self, payload: dict, message_id=str(uuid4()), delay_seconds=None):
         """ Submit a record ready to be batched up and sent to SQS """
         logger.debug(f"Payload submitted to {self.aws_service_name} dispatcher: {payload}")
         if not any(d["Id"] == message_id for d in self._payload_list):
             constructed_payload = {
                 'Id': message_id,
-                'MessageBody': str(payload),
-                'DelaySeconds': delay_seconds
+                'MessageBody': str(payload)
                 }
+            if not self.fifo_queue and isinstance(delay_seconds, int):
+                constructed_payload['DelaySeconds'] = delay_seconds
             logger.debug(f"SQS payload constructed: {constructed_payload}")
             super().submit_payload(constructed_payload)
         else:
             logger.debug(f"Message with message_id ({message_id}) already exists in the batch, skipping...")
+
+
+class SQSFifoBatchDispatcher(SQSBatchDispatcher):
+
+    def __init__(self, queue_name, max_batch_size=10, flush_payload_on_max_batch_size=True):
+        super().__init__(queue_name, max_batch_size, flush_payload_on_max_batch_size)
+        self.fifo_queue = True
