@@ -257,23 +257,43 @@ class SendIndividualPayload(TestCase):
 
     def test_happy_path(self):
         dy = DynamoBatchDispatcher('test_table_name', 'p_key', max_batch_size=1, flush_payload_on_max_batch_size=False)
-        dy.dynamo_table.put_item = Mock()
+        dy._dynamo_table = Mock()
+        dy._dynamo_table.put_item = Mock()
         test_payload = {"processed_payload": False}
         dy._send_individual_payload(test_payload)
-        dy.dynamo_table.put_item.assert_called_once_with(**{'Item': test_payload})
+        dy._dynamo_table.put_item.assert_called_once_with(**{'Item': test_payload})
 
     def test_client_error_retries_remaining(self):
         dy = DynamoBatchDispatcher('test_table_name', 'p_key', max_batch_size=1, flush_payload_on_max_batch_size=False)
-        dy.dynamo_table.put_item.side_effect = [ClientError({'Error': {'Code': 500, 'Message': 'broken'}}, "Dynamo"),
-                                                None]
+        dy._dynamo_table = Mock()
+        dy._dynamo_table.put_item.side_effect = [ClientError({'Error': {'Code': 500, 'Message': 'broken'}}, "Dynamo"),
+                                                 None]
         test_payload = {"processed_payload": False}
         dy._send_individual_payload(test_payload, retry=1)
-        dy.dynamo_table.put_item.assert_has_calls([call(**{'Item': test_payload}), call(**{'Item': test_payload})])
+        dy._dynamo_table.put_item.assert_has_calls([call(**{'Item': test_payload}), call(**{'Item': test_payload})])
 
     def test_client_error_no_retries_remaining(self):
         dy = DynamoBatchDispatcher('test_table_name', 'p_key', max_batch_size=1, flush_payload_on_max_batch_size=False)
-        dy.dynamo_table.put_item.side_effect = [ClientError({'Error': {'Code': 500, 'Message': 'broken'}}, "Dynamo")]
+        dy._dynamo_table = Mock()
+        dy._dynamo_table.put_item.side_effect = [ClientError({'Error': {'Code': 500, 'Message': 'broken'}}, "Dynamo")]
         test_payload = {"processed_payload": False}
         with self.assertRaises(ClientError) as context:
             dy._send_individual_payload(test_payload, retry=0)
-        dy.dynamo_table.put_item.assert_called_once_with(**{'Item': test_payload})
+        dy._dynamo_table.put_item.assert_called_once_with(**{'Item': test_payload})
+
+
+@patch('boto3_batch_utils.Base.boto3.client', MockClient)
+@patch('boto3_batch_utils.Base.boto3', Mock())
+@patch.object(BaseDispatcher, '_initialise_aws_client')
+class TestInitialiseAwsClient(TestCase):
+
+    def test(self, mock_initialise_aws_client):
+        dy = DynamoBatchDispatcher('test_table_name', 'p_key', max_batch_size=1, flush_payload_on_max_batch_size=False)
+        dy._aws_service = Mock()
+        dy._aws_service.Table = Mock(return_value="test table")
+
+        table_client = dy._initialise_aws_client()
+
+        mock_initialise_aws_client.assert_called_once()
+        dy._aws_service.Table.assert_called_once_with('test_table_name')
+        self.assertEqual('test table', dy._dynamo_table)

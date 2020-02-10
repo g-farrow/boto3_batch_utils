@@ -21,7 +21,14 @@ class DynamoBatchDispatcher(BaseDispatcher):
         self.partition_key_data_type = partition_key_data_type
         super().__init__('dynamodb', batch_dispatch_method='batch_write_item', batch_size=max_batch_size,
                          flush_payload_on_max_batch_size=flush_payload_on_max_batch_size)
-        self.dynamo_table = self._aws_service.Table(self.dynamo_table_name)
+        self._dynamo_table = None
+
+    def _initialise_aws_client(self):
+        """
+        Initialise client/resource for the AWS service
+        """
+        super()._initialise_aws_client()
+        self._dynamo_table = self._aws_service.Table(self.dynamo_table_name)
 
     def _send_individual_payload(self, payload: dict, retry: int = 4):
         """
@@ -30,7 +37,7 @@ class DynamoBatchDispatcher(BaseDispatcher):
         """
         logger.debug(f"Attempting to send individual payload ({retry} retries left): {payload}")
         try:
-            self.dynamo_table.put_item(Item=payload)
+            self._dynamo_table.put_item(Item=payload)
         except ClientError as e:
             if retry:
                 logger.debug(f"Individual send attempt has failed, retrying: {str(e)}")
@@ -74,7 +81,7 @@ class DynamoBatchDispatcher(BaseDispatcher):
         """
         Submit a record ready for batch sending to DynamoDB
         """
-        logger.debug(f"Payload submitted to {self._aws_service_name} dispatcher: {payload}")
+        logger.debug(f"Payload submitted to {self.aws_service_name} dispatcher: {payload}")
         if self.partition_key not in payload.keys():
             payload[self.partition_key] = self.partition_key_data_type(payload[partition_key_location])
         if self._check_payload_is_unique(payload):

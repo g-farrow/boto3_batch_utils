@@ -53,7 +53,7 @@ class SQSBatchDispatcher(BaseDispatcher):
 
     def submit_payload(self, payload: dict, message_id=str(uuid4()), delay_seconds=0):
         """ Submit a record ready to be batched up and sent to SQS """
-        logger.debug(f"Payload submitted to {self._aws_service_name} dispatcher: {payload}")
+        logger.debug(f"Payload submitted to {self.aws_service_name} dispatcher: {payload}")
         if not any(d["Id"] == message_id for d in self._payload_list):
             constructed_payload = {
                 'Id': message_id,

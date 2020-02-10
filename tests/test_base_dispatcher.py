@@ -26,18 +26,34 @@ mock_boto3_interface_type_mapper = {
 @patch('boto3_batch_utils.Base._boto3_interface_type_mapper', mock_boto3_interface_type_mapper)
 @patch('boto3_batch_utils.Base.boto3.client', MockClient)
 @patch('boto3_batch_utils.Base.boto3', Mock())
-class Initialise(TestCase):
+class InitialiseBatchUtilsClient(TestCase):
 
     def test_init(self):
         base = BaseDispatcher('test_subject', 'send_lots', 'send_one', batch_size=1,
                               flush_payload_on_max_batch_size=False)
-        self.assertEqual('test_subject', base._aws_service_name)
-        self.assertEqual('test_subject_client', base._aws_service.client_name)
-        self.assertEqual('send_lots', base._batch_dispatch_method.__name__)
-        self.assertEqual('send_one', base._individual_dispatch_method.__name__)
+        self.assertEqual('test_subject', base.aws_service_name)
+        self.assertIsNone(base._aws_service)
+        self.assertEqual('send_lots', base.batch_dispatch_method)
+        self.assertIsNone(base._batch_dispatch_method)
+        self.assertEqual('send_one', base.individual_dispatch_method)
+        self.assertIsNone(base._individual_dispatch_method)
         self.assertEqual(1, base.max_batch_size)
         self.assertEqual(False, base.flush_payload_on_max_batch_size)
         self.assertEqual([], base._payload_list)
+
+
+@patch('boto3_batch_utils.Base._boto3_interface_type_mapper', mock_boto3_interface_type_mapper)
+@patch('boto3_batch_utils.Base.boto3.client', MockClient)
+@patch('boto3_batch_utils.Base.boto3', Mock())
+class InitialiseAwsClient(TestCase):
+
+    def test_init(self):
+        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', batch_size=1,
+                              flush_payload_on_max_batch_size=False)
+        base._initialise_aws_client()
+        self.assertEqual('test_subject_client', base._aws_service.client_name)
+        self.assertEqual('send_lots', base._batch_dispatch_method.__name__)
+        self.assertEqual('send_one', base._individual_dispatch_method.__name__)
 
 
 @patch('boto3_batch_utils.Base._boto3_interface_type_mapper', mock_boto3_interface_type_mapper)
@@ -152,9 +168,11 @@ class FlushPayloads(TestCase):
         base = BaseDispatcher('test_subject', 'send_lots', 'send_one', batch_size=3,
                               flush_payload_on_max_batch_size=False)
         base._payload_list = []
+        base._initialise_aws_client = Mock()
         base._batch_send_payloads = Mock()
         mock_chunks.return_value = [[]]
         base.flush_payloads()
+        base._initialise_aws_client.assert_called_once()
         base._batch_send_payloads.assert_not_called()
         self.assertEqual([], base._payload_list)
 
@@ -162,9 +180,11 @@ class FlushPayloads(TestCase):
         base = BaseDispatcher('test_subject', 'send_lots', 'send_one', batch_size=3,
                               flush_payload_on_max_batch_size=False)
         base._payload_list = [1, 2]
+        base._initialise_aws_client = Mock()
         base._batch_send_payloads = Mock()
         mock_chunks.return_value = [[1, 2]]
         base.flush_payloads()
+        base._initialise_aws_client.assert_called_once()
         base._batch_send_payloads.assert_called_once_with([1, 2])
         self.assertEqual([], base._payload_list)
 
@@ -172,9 +192,11 @@ class FlushPayloads(TestCase):
         base = BaseDispatcher('test_subject', 'send_lots', 'send_one', batch_size=3,
                               flush_payload_on_max_batch_size=False)
         base._payload_list = [1, 2, 3]
+        base._initialise_aws_client = Mock()
         base._batch_send_payloads = Mock()
         mock_chunks.return_value = [[1, 2, 3]]
         base.flush_payloads()
+        base._initialise_aws_client.assert_called_once()
         base._batch_send_payloads.assert_called_once_with([1, 2, 3])
         self.assertEqual([], base._payload_list)
 
@@ -182,9 +204,11 @@ class FlushPayloads(TestCase):
         base = BaseDispatcher('test_subject', 'send_lots', 'send_one', batch_size=3,
                               flush_payload_on_max_batch_size=False)
         base._payload_list = [1, 2, 3, 4]
+        base._initialise_aws_client = Mock()
         base._batch_send_payloads = Mock()
         mock_chunks.return_value = [[1, 2, 3], [4]]
         base.flush_payloads()
+        base._initialise_aws_client.assert_called_once()
         base._batch_send_payloads.assert_has_calls([call([1, 2, 3]), call([4])])
         self.assertEqual([], base._payload_list)
 
