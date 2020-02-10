@@ -49,7 +49,7 @@ class CloudwatchBatchDispatcher(BaseDispatcher):
                 'Value': value,
                 'Unit': unit
             }
-        logger.debug(f"Payload submitted to {self._aws_service_name} dispatcher: {payload}")
+        logger.debug(f"Payload submitted to {self.aws_service_name} dispatcher: {payload}")
         if dimensions:
             payload['Dimensions'] = dimensions if isinstance(dimensions, list) else [dimensions]
         super().submit_payload(payload)
