@@ -41,7 +41,7 @@ class BaseDispatcher:
         self._aws_service_batch_max_payloads = None
         self._aws_service_message_max_bytes = None
         self._aws_service_batch_max_bytes = None
-        self._payload_list = []
+        self._batch_payload = None
         logger.debug(f"Batch dispatch initialised: {self.aws_service_name}")
 
     def _validate_initialisation(self):
@@ -110,23 +110,23 @@ class BaseDispatcher:
 
     def flush_payloads(self):
         """ Push all payloads in the payload list to the subject """
-        logger.debug(f"{self.aws_service_name} payload list has {len(self._payload_list)} entries")
+        logger.debug(f"{self.aws_service_name} payload list has {len(self._batch_payload)} entries")
         self._initialise_aws_client()
-        if self._payload_list:
-            logger.debug(f"Preparing to send {len(self._payload_list)} records to {self.aws_service_name}")
-            batch_list = list(chunks(self._payload_list, self.max_batch_size))
+        if self._batch_payload:
+            logger.debug(f"Preparing to send {len(self._batch_payload)} records to {self.aws_service_name}")
+            batch_list = list(chunks(self._batch_payload, self.max_batch_size))
             logger.debug(f"Payload list split into {len(batch_list)} batches")
             for batch in batch_list:
                 self._batch_send_payloads(batch)
-            self._payload_list = []
+            self._batch_payload = []
         else:
             logger.info(f"No payloads to flush to {self.aws_service_name}")
 
     def _flush_payload_selector(self):
         """ Decide whether or not to flush the payload (usually used following a payload submission) """
-        logger.debug(f"Payload list now contains '{len(self._payload_list)}' payloads, "
+        logger.debug(f"Payload list now contains '{len(self._batch_payload)}' payloads, "
                      f"max batch size is '{self.max_batch_size}'")
-        if self.flush_payload_on_max_batch_size and len(self._payload_list) >= self.max_batch_size:
+        if self.flush_payload_on_max_batch_size and len(self._batch_payload) >= self.max_batch_size:
             logger.debug("Max batch size has been reached, flushing the payload list contents")
             self.flush_payloads()
         else:
@@ -142,9 +142,13 @@ class BaseDispatcher:
         if get_byte_size_of_string(payload) > self._aws_service_message_max_bytes:
             raise ValueError(f"Submitted payload exceeds the maximum payload size for {self.aws_service_name}")
 
+    def _append_payload_to_current_batch(self, payload):
+        """ Append the payload to the service specific batch structure """
+        pass
+
     def submit_payload(self, payload):
         """ Submit a metric ready to be batched up and sent to Cloudwatch """
         self._validate_payload_byte_size(payload)
-        self._payload_list.append(payload)
+        self._append_payload_to_current_batch(payload)
         logger.debug(f"Payload has been added to the {self.aws_service_name} dispatcher payload list: {payload}")
         self._flush_payload_selector()

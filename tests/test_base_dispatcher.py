@@ -38,7 +38,7 @@ class InitialiseBatchUtilsClient(TestCase):
         self.assertIsNone(base._individual_dispatch_method)
         self.assertEqual(1, base.max_batch_size)
         self.assertEqual(False, base.flush_payload_on_max_batch_size)
-        self.assertEqual([], base._payload_list)
+        self.assertIsNone(base._batch_payload)
         self.assertIsNone(base._aws_service_batch_max_payloads)
         self.assertIsNone(base._aws_service_message_max_bytes)
         self.assertIsNone(base._aws_service_batch_max_bytes)
@@ -87,26 +87,15 @@ class SubmitPayload(TestCase):
     def test_when_payload_list_is_empty(self):
         base = BaseDispatcher('test_subject', 'send_lots', 'send_one', max_batch_size=1,
                               flush_payload_on_max_batch_size=False)
-        base._flush_payload_selector = Mock()
         base._validate_payload_byte_size = Mock(return_value=True)
+        base._append_payload_to_current_batch = Mock()
+        base._flush_payload_selector = Mock()
         pl = "a"
         base.submit_payload(pl)
-        self.assertEqual(["a"], base._payload_list)
         base._validate_payload_byte_size.assert_called_once_with(pl)
+        base._append_payload_to_current_batch.assert_called_once_with(pl)
         base._flush_payload_selector.assert_called_once()
 
-    def test_when_payload_list_is_not_empty(self):
-        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', max_batch_size=1,
-                              flush_payload_on_max_batch_size=False)
-        base._flush_payload_selector = Mock()
-        base._validate_payload_byte_size = Mock(return_value=True)
-        existing_payload_list = [1, 2, 3, 4, 5, {"6": "seven"}]
-        base._payload_list = existing_payload_list
-        pl = "a"
-        base.submit_payload(pl)
-        self.assertEqual([1, 2, 3, 4, 5, {"6": "seven"}, "a"], base._payload_list)
-        base._validate_payload_byte_size.assert_called_once_with(pl)
-        base._flush_payload_selector.assert_called_once()
 
 
 @patch('boto3_batch_utils.Base._boto3_interface_type_mapper', mock_boto3_interface_type_mapper)
@@ -117,7 +106,7 @@ class PayloadSelectorWhenFlushOnMaxIsTrue(TestCase):
     def test_empty_payload_list(self):
         base = BaseDispatcher('test_subject', 'send_lots', 'send_one', max_batch_size=3,
                               flush_payload_on_max_batch_size=True)
-        base._payload_list = []
+        base._batch_payload = []
         base._batch_send_payloads = Mock()
         base._flush_payload_selector()
         base._batch_send_payloads.assert_not_called()
@@ -125,7 +114,7 @@ class PayloadSelectorWhenFlushOnMaxIsTrue(TestCase):
     def test_payload_list_less_than_max_batch_size(self):
         base = BaseDispatcher('test_subject', 'send_lots', 'send_one', max_batch_size=3,
                               flush_payload_on_max_batch_size=True)
-        base._payload_list = [1, 2]
+        base._batch_payload = [1, 2]
         base._batch_send_payloads = Mock()
         base._flush_payload_selector()
         base._batch_send_payloads.assert_not_called()
@@ -133,7 +122,7 @@ class PayloadSelectorWhenFlushOnMaxIsTrue(TestCase):
     def test_payload_list_equal_max_batch_size(self):
         base = BaseDispatcher('test_subject', 'send_lots', 'send_one', max_batch_size=3,
                               flush_payload_on_max_batch_size=True)
-        base._payload_list = [1, 2, 3]
+        base._batch_payload = [1, 2, 3]
         base._batch_send_payloads = Mock()
         base._flush_payload_selector()
         base._batch_send_payloads.assert_called_once_with([1, 2, 3])
@@ -141,7 +130,7 @@ class PayloadSelectorWhenFlushOnMaxIsTrue(TestCase):
     def test_payload_list_greater_than_max_batch_size(self):
         base = BaseDispatcher('test_subject', 'send_lots', 'send_one', max_batch_size=3,
                               flush_payload_on_max_batch_size=True)
-        base._payload_list = [1, 2, 3, 4]
+        base._batch_payload = [1, 2, 3, 4]
         base._batch_send_payloads = Mock()
         base._flush_payload_selector()
         base._batch_send_payloads.assert_has_calls([call([1, 2, 3]), call([4])])
@@ -155,7 +144,7 @@ class PayloadSelectorWhenFlushOnMaxIsFalse(TestCase):
     def test_empty_payload_list(self):
         base = BaseDispatcher('test_subject', 'send_lots', 'send_one', max_batch_size=3,
                               flush_payload_on_max_batch_size=False)
-        base._payload_list = []
+        base._batch_payload = []
         base._batch_send_payloads = Mock()
         base._flush_payload_selector()
         base._batch_send_payloads.assert_not_called()
@@ -163,7 +152,7 @@ class PayloadSelectorWhenFlushOnMaxIsFalse(TestCase):
     def test_payload_list_less_than_max_batch_size(self):
         base = BaseDispatcher('test_subject', 'send_lots', 'send_one', max_batch_size=3,
                               flush_payload_on_max_batch_size=False)
-        base._payload_list = [1, 2]
+        base._batch_payload = [1, 2]
         base._batch_send_payloads = Mock()
         base._flush_payload_selector()
         base._batch_send_payloads.assert_not_called()
@@ -171,7 +160,7 @@ class PayloadSelectorWhenFlushOnMaxIsFalse(TestCase):
     def test_payload_list_equal_max_batch_size(self):
         base = BaseDispatcher('test_subject', 'send_lots', 'send_one', max_batch_size=3,
                               flush_payload_on_max_batch_size=False)
-        base._payload_list = [1, 2, 3]
+        base._batch_payload = [1, 2, 3]
         base._batch_send_payloads = Mock()
         base._flush_payload_selector()
         base._batch_send_payloads.assert_not_called()
@@ -179,7 +168,7 @@ class PayloadSelectorWhenFlushOnMaxIsFalse(TestCase):
     def test_payload_list_greater_than_max_batch_size(self):
         base = BaseDispatcher('test_subject', 'send_lots', 'send_one', max_batch_size=3,
                               flush_payload_on_max_batch_size=False)
-        base._payload_list = [1, 2, 3, 4]
+        base._batch_payload = [1, 2, 3, 4]
         base._batch_send_payloads = Mock()
         base._flush_payload_selector()
         base._batch_send_payloads.assert_not_called()
@@ -194,50 +183,50 @@ class FlushPayloads(TestCase):
     def test_empty_payload_list(self, mock_chunks):
         base = BaseDispatcher('test_subject', 'send_lots', 'send_one', max_batch_size=3,
                               flush_payload_on_max_batch_size=False)
-        base._payload_list = []
+        base._batch_payload = []
         base._initialise_aws_client = Mock()
         base._batch_send_payloads = Mock()
         mock_chunks.return_value = [[]]
         base.flush_payloads()
         base._initialise_aws_client.assert_called_once()
         base._batch_send_payloads.assert_not_called()
-        self.assertEqual([], base._payload_list)
+        self.assertEqual([], base._batch_payload)
 
     def test_payload_partial_max_batch_size(self, mock_chunks):
         base = BaseDispatcher('test_subject', 'send_lots', 'send_one', max_batch_size=3,
                               flush_payload_on_max_batch_size=False)
-        base._payload_list = [1, 2]
+        base._batch_payload = [1, 2]
         base._initialise_aws_client = Mock()
         base._batch_send_payloads = Mock()
         mock_chunks.return_value = [[1, 2]]
         base.flush_payloads()
         base._initialise_aws_client.assert_called_once()
         base._batch_send_payloads.assert_called_once_with([1, 2])
-        self.assertEqual([], base._payload_list)
+        self.assertEqual([], base._batch_payload)
 
     def test_payload_equal_max_batch_size(self, mock_chunks):
         base = BaseDispatcher('test_subject', 'send_lots', 'send_one', max_batch_size=3,
                               flush_payload_on_max_batch_size=False)
-        base._payload_list = [1, 2, 3]
+        base._batch_payload = [1, 2, 3]
         base._initialise_aws_client = Mock()
         base._batch_send_payloads = Mock()
         mock_chunks.return_value = [[1, 2, 3]]
         base.flush_payloads()
         base._initialise_aws_client.assert_called_once()
         base._batch_send_payloads.assert_called_once_with([1, 2, 3])
-        self.assertEqual([], base._payload_list)
+        self.assertEqual([], base._batch_payload)
 
     def test_payload_multiple_batches(self, mock_chunks):
         base = BaseDispatcher('test_subject', 'send_lots', 'send_one', max_batch_size=3,
                               flush_payload_on_max_batch_size=False)
-        base._payload_list = [1, 2, 3, 4]
+        base._batch_payload = [1, 2, 3, 4]
         base._initialise_aws_client = Mock()
         base._batch_send_payloads = Mock()
         mock_chunks.return_value = [[1, 2, 3], [4]]
         base.flush_payloads()
         base._initialise_aws_client.assert_called_once()
         base._batch_send_payloads.assert_has_calls([call([1, 2, 3]), call([4])])
-        self.assertEqual([], base._payload_list)
+        self.assertEqual([], base._batch_payload)
 
 
 @patch('boto3_batch_utils.Base._boto3_interface_type_mapper', mock_boto3_interface_type_mapper)

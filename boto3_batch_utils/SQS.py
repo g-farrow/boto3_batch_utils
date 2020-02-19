@@ -20,6 +20,7 @@ class SQSBatchDispatcher(BaseDispatcher):
         self._aws_service_batch_max_payloads = None
         self._aws_service_message_max_bytes = None
         self._aws_service_batch_max_bytes = None
+        self._batch_payload = {'QueueUrl': self.queue_url, 'Entries': []}
         self._validate_initialisation()
 
     def _send_individual_payload(self, payload: dict, retry: int = 5):
@@ -58,10 +59,14 @@ class SQSBatchDispatcher(BaseDispatcher):
         """ Push all records in the payload list to SQS """
         super().flush_payloads()
 
+    def _append_payload_to_current_batch(self, payload):
+        """ Append the payload to the service specific batch structure """
+        self._batch_payload['Entries'].append(payload)
+
     def submit_payload(self, payload: dict, message_id=str(uuid4()), delay_seconds=None):
         """ Submit a record ready to be batched up and sent to SQS """
         logger.debug(f"Payload submitted to {self.aws_service_name} dispatcher: {payload}")
-        if not any(d["Id"] == message_id for d in self._payload_list):
+        if not any(d["Id"] == message_id for d in self._batch_payload['Entries']):
             constructed_payload = {
                 'Id': message_id,
                 'MessageBody': str(payload)
