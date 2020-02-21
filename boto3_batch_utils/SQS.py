@@ -1,6 +1,7 @@
 import logging
 from uuid import uuid4
 from boto3_batch_utils.Base import BaseDispatcher
+from boto3_batch_utils import constants
 
 logger = logging.getLogger('boto3-batch-utils')
 
@@ -14,9 +15,9 @@ class SQSBaseBatchDispatcher(BaseDispatcher):
         self.fifo_queue = False
         super().__init__('sqs', batch_dispatch_method='send_message_batch', individual_dispatch_method='send_message',
                          max_batch_size=max_batch_size, flush_payload_on_max_batch_size=flush_payload_on_max_batch_size)
-        self._aws_service_batch_max_payloads = None
-        self._aws_service_message_max_bytes = None
-        self._aws_service_batch_max_bytes = None
+        self._aws_service_batch_max_payloads = constants.SQS_MAX_BATCH_PAYLOADS
+        self._aws_service_message_max_bytes = constants.SQS_MESSAGE_MAX_BYTES
+        self._aws_service_batch_max_bytes = constants.SQS_BATCH_MAX_BYTES
         self._batch_payload = {'QueueUrl': self.queue_url, 'Entries': []}
         self._validate_initialisation()
 

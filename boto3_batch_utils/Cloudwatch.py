@@ -2,8 +2,8 @@ import logging
 from datetime import datetime
 
 from boto3_batch_utils.Base import BaseDispatcher
-from boto3_batch_utils.constants import CLOUDWATCH_BATCH_MAX_BYTES, CLOUDWATCH_BATCH_MAX_PAYLOADS,\
-    CLOUDWATCH_MESSAGE_MAX_BYTES
+from boto3_batch_utils import constants
+
 
 logger = logging.getLogger('boto3-batch-utils')
 
@@ -22,9 +22,9 @@ class CloudwatchBatchDispatcher(BaseDispatcher):
         self.namespace = namespace
         super().__init__('cloudwatch', batch_dispatch_method='put_metric_data', max_batch_size=max_batch_size,
                          flush_payload_on_max_batch_size=flush_payload_on_max_batch_size)
-        self._aws_service_batch_max_payloads = CLOUDWATCH_BATCH_MAX_PAYLOADS
-        self._aws_service_message_max_bytes = CLOUDWATCH_MESSAGE_MAX_BYTES
-        self._aws_service_batch_max_bytes = CLOUDWATCH_BATCH_MAX_BYTES
+        self._aws_service_batch_max_payloads = constants.CLOUDWATCH_BATCH_MAX_PAYLOADS
+        self._aws_service_message_max_bytes = constants.CLOUDWATCH_MESSAGE_MAX_BYTES
+        self._aws_service_batch_max_bytes = constants.CLOUDWATCH_BATCH_MAX_BYTES
         self._batch_payload = {'Namespace': self.namespace, 'MetricData': []}
         self._validate_initialisation()
 
