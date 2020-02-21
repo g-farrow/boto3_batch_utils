@@ -98,16 +98,21 @@ class SQSFifoBatchDispatcher(SQSBaseBatchDispatcher):
         super()._send_individual_payload(kwargs, retry=4)
 
     def submit_payload(self, payload: dict, message_id=str(uuid4()), delay_seconds: int = None,
-                       message_group_id: str = 'unset'):
+                       message_group_id: str = 'unset', message_deduplication_id: str = None):
         """ Submit a record ready to be batched up and sent to SQS """
         logger.debug(f"Payload submitted to SQS FIFO dispatcher: {payload}")
-        if not any(d["Id"] == message_id for d in self._payload_list) or self.content_based_deduplication:
-            constructed_payload = {
-                'Id': message_id,
-                'MessageBody': str(payload),
-                'MessageGroupId': message_group_id
-                }
-            logger.debug(f"SQS FIFO payload constructed: {constructed_payload}")
-            super().submit_payload(constructed_payload)
-        else:
-            logger.debug(f"Message with message_id ({message_id}) already exists in the batch, skipping...")
+        constructed_payload = {
+            'Id': message_id,
+            'MessageBody': str(payload),
+            'MessageGroupId': message_group_id
+        }
+        if message_deduplication_id:
+            if not any(d['MessageDeduplicationId'] == message_deduplication_id for d in self._payload_list):
+                constructed_payload['MessageDeduplicationId'] = message_deduplication_id
+            else:
+                logger.debug(f"Message with message_id ({message_id}) already exists in the batch, skipping...")
+        elif not self.content_based_deduplication:
+            raise ValueError(f"Target SQS FIFO queue ({self.queue_name}) is not shown to have ContentBasedDeduplication"
+                             f" therefore `message_deduplication_id` MUST be set")
+        logger.debug(f"SQS FIFO payload constructed: {constructed_payload}")
+        super().submit_payload(constructed_payload)
