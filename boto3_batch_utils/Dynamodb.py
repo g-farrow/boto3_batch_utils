@@ -125,8 +125,8 @@ class DynamoBatchDispatcher(BaseDispatcher):
         payloads in the batch
         """
         logger.debug("Checking if the partition key already exists in the existing batch")
-        if any(d["PutRequest"]["Item"][self.partition_key] == payload[self.partition_key]
-               for d in self._batch_payload):
+        if any(d['PutRequest']['Item'][self.partition_key] == payload[self.partition_key]
+               for d in self._batch_payload['RequestItems'][self.dynamo_table_name]):
             logger.debug("This payload has already been submitted")
             return False
         else:
@@ -140,9 +140,9 @@ class DynamoBatchDispatcher(BaseDispatcher):
         """
         logger.debug("Checking if the partition key, sort key combination already exists in the existing batch")
         if any(
-                (d["PutRequest"]["Item"][self.partition_key] == payload[self.partition_key] and
-                 d["PutRequest"]["Item"][self.sort_key] == payload[self.sort_key])
-                for d in self._batch_payload
+                (d['PutRequest']['Item'][self.partition_key] == payload[self.partition_key] and
+                 d['PutRequest']['Item'][self.sort_key] == payload[self.sort_key])
+                for d in self._batch_payload['RequestItems'][self.dynamo_table_name]
         ):
             logger.debug("This payload has already been submitted")
             return False
