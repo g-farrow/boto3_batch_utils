@@ -57,7 +57,8 @@ class SQSBatchDispatcher(BaseDispatcher):
         """ Push all records in the payload list to SQS """
         super().flush_payloads()
 
-    def submit_payload(self, payload: dict, message_id=str(uuid4()), delay_seconds=None):
+    def submit_payload(self, payload: dict, message_id=str(uuid4()), delay_seconds: int = None,
+                       message_group_id: str = 'unset'):
         """ Submit a record ready to be batched up and sent to SQS """
         logger.debug(f"Payload submitted to {self.aws_service_name} dispatcher: {payload}")
         if not any(d["Id"] == message_id for d in self._payload_list):
@@ -67,6 +68,8 @@ class SQSBatchDispatcher(BaseDispatcher):
                 }
             if not self.fifo_queue and isinstance(delay_seconds, int):
                 constructed_payload['DelaySeconds'] = delay_seconds
+            if self.fifo_queue:
+                constructed_payload['MessageGroupId'] = message_group_id
             logger.debug(f"SQS payload constructed: {constructed_payload}")
             super().submit_payload(constructed_payload)
         else:
