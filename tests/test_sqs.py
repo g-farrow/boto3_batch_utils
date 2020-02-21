@@ -226,5 +226,9 @@ class SendIndividualPayload(TestCase):
             'MessageBody': "some_sort_of_payload"
             }
         sqs._send_individual_payload(test_payload)
-        expected_converted_payload = {"QueueUrl": "test_url", "MessageBody": "some_sort_of_payload"}
+        expected_converted_payload = {
+            "QueueUrl": "test_url",
+            "MessageBody": "some_sort_of_payload",
+            "MessageGroupId": "unset"
+        }
         mock_send_individual_payload.assert_called_once_with(expected_converted_payload, retry=4)
