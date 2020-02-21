@@ -5,10 +5,7 @@ from boto3_batch_utils.Base import BaseDispatcher
 logger = logging.getLogger('boto3-batch-utils')
 
 
-class SQSBatchDispatcher(BaseDispatcher):
-    """
-    Manage the batch 'send' of SQS messages
-    """
+class SQSBaseBatchDispatcher(BaseDispatcher):
 
     def __init__(self, queue_name, max_batch_size=10, flush_payload_on_max_batch_size=True):
         self.queue_name = queue_name
@@ -17,19 +14,6 @@ class SQSBatchDispatcher(BaseDispatcher):
         self.queue_url = None
         self.batch_in_progress = None
         self.fifo_queue = False
-
-    def __str__(self):
-        return f"SQSBatchDispatcher::{self.queue_name}"
-
-    def _send_individual_payload(self, payload: dict, retry: int = 5):
-        """ Send an individual record to SQS """
-        kwargs = {'QueueUrl': self.queue_url, 'MessageBody': payload['MessageBody']}
-        if not self.fifo_queue and payload.get('DelaySeconds'):
-            kwargs['DelaySeconds'] = payload['DelaySeconds']
-        super()._send_individual_payload(
-            kwargs,
-            retry=4
-        )
 
     def _process_batch_send_response(self, response: dict):
         """ Process the response data from a batch put request """
@@ -53,6 +37,26 @@ class SQSBatchDispatcher(BaseDispatcher):
         self.batch_in_progress = batch
         super()._batch_send_payloads({'QueueUrl': self.queue_url, 'Entries': batch})
 
+
+class SQSBatchDispatcher(SQSBaseBatchDispatcher):
+    """
+    Manage the batch 'send' of SQS messages
+    """
+
+    def __init__(self, queue_name, max_batch_size=10, flush_payload_on_max_batch_size=True):
+        super().__init__(queue_name, max_batch_size, flush_payload_on_max_batch_size)
+        self.fifo_queue = False
+
+    def __str__(self):
+        return f"SQSBatchDispatcher::{self.queue_name}"
+
+    def _send_individual_payload(self, payload: dict, retry: int = 5):
+        """ Send an individual record to SQS """
+        kwargs = {'QueueUrl': self.queue_url, 'MessageBody': payload['MessageBody']}
+        if payload.get('DelaySeconds'):
+            kwargs['DelaySeconds'] = payload['DelaySeconds']
+        super()._send_individual_payload(kwargs, retry=4)
+
     def flush_payloads(self):
         """ Push all records in the payload list to SQS """
         super().flush_payloads()
@@ -66,17 +70,15 @@ class SQSBatchDispatcher(BaseDispatcher):
                 'Id': message_id,
                 'MessageBody': str(payload)
                 }
-            if not self.fifo_queue and isinstance(delay_seconds, int):
+            if isinstance(delay_seconds, int):
                 constructed_payload['DelaySeconds'] = delay_seconds
-            if self.fifo_queue:
-                constructed_payload['MessageGroupId'] = message_group_id
             logger.debug(f"SQS payload constructed: {constructed_payload}")
             super().submit_payload(constructed_payload)
         else:
             logger.debug(f"Message with message_id ({message_id}) already exists in the batch, skipping...")
 
 
-class SQSFifoBatchDispatcher(SQSBatchDispatcher):
+class SQSFifoBatchDispatcher(SQSBaseBatchDispatcher):
 
     def __init__(self, queue_name, max_batch_size=10, flush_payload_on_max_batch_size=True):
         super().__init__(queue_name, max_batch_size, flush_payload_on_max_batch_size)
@@ -84,3 +86,26 @@ class SQSFifoBatchDispatcher(SQSBatchDispatcher):
 
     def __str__(self):
         return f"SQSFifoBatchDispatcher::{self.queue_name}"
+
+    def _send_individual_payload(self, payload: dict, retry: int = 5):
+        """ Send an individual record to SQS """
+        kwargs = {
+            'QueueUrl': self.queue_url,
+            **payload
+        }
+        super()._send_individual_payload(kwargs, retry=4)
+
+    def submit_payload(self, payload: dict, message_id=str(uuid4()), delay_seconds: int = None,
+                       message_group_id: str = 'unset'):
+        """ Submit a record ready to be batched up and sent to SQS """
+        logger.debug(f"Payload submitted to {self.aws_service_name} dispatcher: {payload}")
+        if not any(d["Id"] == message_id for d in self._payload_list):
+            constructed_payload = {
+                'Id': message_id,
+                'MessageBody': str(payload),
+                'MessageGroupId': message_group_id
+                }
+            logger.debug(f"SQS payload constructed: {constructed_payload}")
+            super().submit_payload(constructed_payload)
+        else:
+            logger.debug(f"Message with message_id ({message_id}) already exists in the batch, skipping...")

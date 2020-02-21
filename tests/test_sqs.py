@@ -67,7 +67,7 @@ class SubmitPayload(TestCase):
         test_id = 123
         sqs.submit_payload(test_message, test_id)
         mock_submit_payload.assert_called_once_with(
-            {'Id': test_id, 'MessageBody': str(test_message)}
+            {'Id': test_id, 'MessageBody': str(test_message), 'MessageGroupId': 'unset'}
         )
 
 
@@ -223,12 +223,14 @@ class SendIndividualPayload(TestCase):
         sqs.queue_url = 'test_url'
         test_payload = {
             'Id': 12345,
-            'MessageBody': "some_sort_of_payload"
+            'MessageBody': 'some_sort_of_payload',
+            'MessageGroupId': 'unset'
             }
         sqs._send_individual_payload(test_payload)
         expected_converted_payload = {
-            "QueueUrl": "test_url",
-            "MessageBody": "some_sort_of_payload",
-            "MessageGroupId": "unset"
+            'Id': 12345,
+            'QueueUrl': 'test_url',
+            'MessageBody': 'some_sort_of_payload',
+            'MessageGroupId': 'unset'
         }
         mock_send_individual_payload.assert_called_once_with(expected_converted_payload, retry=4)
