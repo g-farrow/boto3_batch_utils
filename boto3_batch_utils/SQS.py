@@ -64,7 +64,7 @@ class SQSBatchDispatcher(SQSBaseBatchDispatcher):
     def submit_payload(self, payload: dict, message_id=str(uuid4()), delay_seconds: int = None,
                        message_group_id: str = 'unset'):
         """ Submit a record ready to be batched up and sent to SQS """
-        logger.debug(f"Payload submitted to {self.aws_service_name} dispatcher: {payload}")
+        logger.debug(f"Payload submitted to SQS dispatcher: {payload}")
         if not any(d["Id"] == message_id for d in self._payload_list):
             constructed_payload = {
                 'Id': message_id,
@@ -80,9 +80,11 @@ class SQSBatchDispatcher(SQSBaseBatchDispatcher):
 
 class SQSFifoBatchDispatcher(SQSBaseBatchDispatcher):
 
-    def __init__(self, queue_name, max_batch_size=10, flush_payload_on_max_batch_size=True):
+    def __init__(self, queue_name, max_batch_size=10, flush_payload_on_max_batch_size=True,
+                 content_based_deduplication=True):
         super().__init__(queue_name, max_batch_size, flush_payload_on_max_batch_size)
         self.fifo_queue = True
+        self.content_based_deduplication = content_based_deduplication
 
     def __str__(self):
         return f"SQSFifoBatchDispatcher::{self.queue_name}"
@@ -98,14 +100,14 @@ class SQSFifoBatchDispatcher(SQSBaseBatchDispatcher):
     def submit_payload(self, payload: dict, message_id=str(uuid4()), delay_seconds: int = None,
                        message_group_id: str = 'unset'):
         """ Submit a record ready to be batched up and sent to SQS """
-        logger.debug(f"Payload submitted to {self.aws_service_name} dispatcher: {payload}")
-        if not any(d["Id"] == message_id for d in self._payload_list):
+        logger.debug(f"Payload submitted to SQS FIFO dispatcher: {payload}")
+        if not any(d["Id"] == message_id for d in self._payload_list) or self.content_based_deduplication:
             constructed_payload = {
                 'Id': message_id,
                 'MessageBody': str(payload),
                 'MessageGroupId': message_group_id
                 }
-            logger.debug(f"SQS payload constructed: {constructed_payload}")
+            logger.debug(f"SQS FIFO payload constructed: {constructed_payload}")
             super().submit_payload(constructed_payload)
         else:
             logger.debug(f"Message with message_id ({message_id}) already exists in the batch, skipping...")
