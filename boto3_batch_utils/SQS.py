@@ -81,7 +81,7 @@ class SQSBatchDispatcher(SQSBaseBatchDispatcher):
 class SQSFifoBatchDispatcher(SQSBaseBatchDispatcher):
 
     def __init__(self, queue_name, max_batch_size=10, flush_payload_on_max_batch_size=True,
-                 content_based_deduplication=True):
+                 content_based_deduplication=False):
         super().__init__(queue_name, max_batch_size, flush_payload_on_max_batch_size)
         self.fifo_queue = True
         self.content_based_deduplication = content_based_deduplication
@@ -111,6 +111,7 @@ class SQSFifoBatchDispatcher(SQSBaseBatchDispatcher):
                 constructed_payload['MessageDeduplicationId'] = message_deduplication_id
             else:
                 logger.debug(f"Message with message_id ({message_id}) already exists in the batch, skipping...")
+                return
         elif not self.content_based_deduplication:
             raise ValueError(f"Target SQS FIFO queue ({self.queue_name}) is not shown to have ContentBasedDeduplication"
                              f" therefore `message_deduplication_id` MUST be set")
