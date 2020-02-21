@@ -8,7 +8,8 @@ __all__ = [
     'cloudwatch_dimension',
     'DynamoBatchDispatcher',
     'KinesisBatchDispatcher',
-    'SQSBatchDispatcher'
+    'SQSBatchDispatcher',
+    'SQSFifoBatchDispatcher'
 ]
 
-__version__ = '1.10.0'
+__version__ = '1.11.1'

@@ -28,6 +28,9 @@ class KinesisBatchDispatcher(BaseDispatcher):
         self._batch_payload = {'StreamName': self.stream_name, 'Records': []}
         self._validate_initialisation()
 
+    def __str__(self):
+        return f"KinesisBatchDispatcher::{self.stream_name}"
+
     def _send_individual_payload(self, payload: dict, retry: int = 5):
         """ Send an individual payload to Kinesis """
         _payload = payload

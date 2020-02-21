@@ -61,14 +61,37 @@ class SubmitPayload(TestCase):
             {'Id': test_id, 'MessageBody': str(test_message)}
         )
 
-    def test_fifo_queue(self, mock_submit_payload):
-        sqs = SQSFifoBatchDispatcher('test_queue', max_batch_size=1, flush_payload_on_max_batch_size=False)
+    def test_fifo_queue_content_based_deduplication(self, mock_submit_payload):
+        sqs = SQSFifoBatchDispatcher('test_queue', max_batch_size=1, flush_payload_on_max_batch_size=False,
+                                     content_based_deduplication=True)
         test_message = {'something': 'else'}
         test_id = 123
         sqs.submit_payload(test_message, test_id)
         mock_submit_payload.assert_called_once_with(
-            {'Id': test_id, 'MessageBody': str(test_message)}
+            {'Id': test_id, 'MessageBody': str(test_message), 'MessageGroupId': 'unset'}
         )
+
+    def test_fifo_queue_message_based_deduplication(self, mock_submit_payload):
+        sqs = SQSFifoBatchDispatcher('test_queue', max_batch_size=1, flush_payload_on_max_batch_size=False)
+        test_message = {'something': 'else'}
+        test_id = 123
+        with self.assertRaises(ValueError) as context:
+            sqs.submit_payload(test_message, test_id)
+        self.assertIn("`message_deduplication_id` MUST be set", str(context.exception))
+        mock_submit_payload.assert_not_called()
+
+    def test_fifo_queue_message_based_deduplication_ignore_duplicate(self, mock_submit_payload):
+        fifo = SQSFifoBatchDispatcher('test_queue', max_batch_size=2, flush_payload_on_max_batch_size=False)
+        test_message = {'something': 'else'}
+        test_id = 123
+        fifo._payload_list = [{
+            'Id': 'abcdefg',
+            'MessageBody': str(test_message),
+            'MessageGroupId': 'asdfg',
+            'MessageDeduplicationId': 'abc'
+        }]
+        fifo.submit_payload(test_message, test_id, message_deduplication_id="abc")
+        mock_submit_payload.assert_not_called()
 
 
 @patch('boto3_batch_utils.Base.boto3.client', MockClient)
@@ -223,8 +246,14 @@ class SendIndividualPayload(TestCase):
         sqs.queue_url = 'test_url'
         test_payload = {
             'Id': 12345,
-            'MessageBody': "some_sort_of_payload"
+            'MessageBody': 'some_sort_of_payload',
+            'MessageGroupId': 'unset'
             }
         sqs._send_individual_payload(test_payload)
-        expected_converted_payload = {"QueueUrl": "test_url", "MessageBody": "some_sort_of_payload"}
+        expected_converted_payload = {
+            'Id': 12345,
+            'QueueUrl': 'test_url',
+            'MessageBody': 'some_sort_of_payload',
+            'MessageGroupId': 'unset'
+        }
         mock_send_individual_payload.assert_called_once_with(expected_converted_payload, retry=4)

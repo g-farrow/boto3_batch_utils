@@ -30,6 +30,9 @@ class DynamoBatchDispatcher(BaseDispatcher):
         self._batch_payload = {'RequestItems': {self.dynamo_table_name: []}}
         self._validate_initialisation()
 
+    def __str__(self):
+        return f"DynamoBatchDispatcher::{self.dynamo_table_name}"
+
     def _initialise_aws_client(self):
         """
         Initialise client/resource for the AWS service

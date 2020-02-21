@@ -28,6 +28,9 @@ class CloudwatchBatchDispatcher(BaseDispatcher):
         self._batch_payload = {'Namespace': self.namespace, 'MetricData': []}
         self._validate_initialisation()
 
+    def __str__(self):
+        return f"CloudwatchBatchDispatcher::{self.namespace}"
+
     def _send_individual_payload(self, payload: dict, retry: int = 4):
         """ Send an individual metric to Cloudwatch """
         pass
