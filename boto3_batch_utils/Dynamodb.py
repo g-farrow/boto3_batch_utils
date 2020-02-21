@@ -23,6 +23,9 @@ class DynamoBatchDispatcher(BaseDispatcher):
                          flush_payload_on_max_batch_size=flush_payload_on_max_batch_size)
         self._dynamo_table = None
 
+    def __str__(self):
+        return f"DynamoBatchDispatcher::{self.dynamo_table_name}"
+
     def _initialise_aws_client(self):
         """
         Initialise client/resource for the AWS service

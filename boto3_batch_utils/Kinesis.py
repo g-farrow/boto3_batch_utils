@@ -22,6 +22,9 @@ class KinesisBatchDispatcher(BaseDispatcher):
         super().__init__('kinesis', batch_dispatch_method='put_records', individual_dispatch_method='put_record',
                          batch_size=max_batch_size, flush_payload_on_max_batch_size=flush_payload_on_max_batch_size)
 
+    def __str__(self):
+        return f"KinesisBatchDispatcher::{self.stream_name}"
+
     def _send_individual_payload(self, payload: dict, retry: int = 5):
         """ Send an individual payload to Kinesis """
         _payload = payload

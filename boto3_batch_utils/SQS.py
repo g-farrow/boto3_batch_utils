@@ -18,6 +18,9 @@ class SQSBatchDispatcher(BaseDispatcher):
         self.batch_in_progress = None
         self.fifo_queue = False
 
+    def __str__(self):
+        return f"SQSBatchDispatcher::{self.queue_name}"
+
     def _send_individual_payload(self, payload: dict, retry: int = 5):
         """ Send an individual record to SQS """
         kwargs = {'QueueUrl': self.queue_url, 'MessageBody': payload['MessageBody']}
@@ -75,3 +78,6 @@ class SQSFifoBatchDispatcher(SQSBatchDispatcher):
     def __init__(self, queue_name, max_batch_size=10, flush_payload_on_max_batch_size=True):
         super().__init__(queue_name, max_batch_size, flush_payload_on_max_batch_size)
         self.fifo_queue = True
+
+    def __str__(self):
+        return f"SQSFifoBatchDispatcher::{self.queue_name}"
