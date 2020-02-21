@@ -2,6 +2,8 @@ import logging
 from datetime import datetime
 
 from boto3_batch_utils.Base import BaseDispatcher
+from boto3_batch_utils.constants import CLOUDWATCH_BATCH_MAX_BYTES, CLOUDWATCH_BATCH_MAX_PAYLOADS,\
+    CLOUDWATCH_MESSAGE_MAX_BYTES
 
 logger = logging.getLogger('boto3-batch-utils')
 
@@ -18,8 +20,13 @@ class CloudwatchBatchDispatcher(BaseDispatcher):
 
     def __init__(self, namespace: str, max_batch_size: int = 20, flush_payload_on_max_batch_size: bool = True):
         self.namespace = namespace
-        super().__init__('cloudwatch', batch_dispatch_method='put_metric_data', batch_size=max_batch_size,
+        super().__init__('cloudwatch', batch_dispatch_method='put_metric_data', max_batch_size=max_batch_size,
                          flush_payload_on_max_batch_size=flush_payload_on_max_batch_size)
+        self._aws_service_batch_max_payloads = CLOUDWATCH_BATCH_MAX_PAYLOADS
+        self._aws_service_message_max_bytes = CLOUDWATCH_MESSAGE_MAX_BYTES
+        self._aws_service_batch_max_bytes = CLOUDWATCH_BATCH_MAX_BYTES
+        self._batch_payload = {'Namespace': self.namespace, 'MetricData': []}
+        self._validate_initialisation()
 
     def __str__(self):
         return f"CloudwatchBatchDispatcher::{self.namespace}"
@@ -42,6 +49,10 @@ class CloudwatchBatchDispatcher(BaseDispatcher):
     def flush_payloads(self):
         """ Push all metrics in the payload list to Cloudwatch """
         super().flush_payloads()
+
+    def _append_payload_to_current_batch(self, payload):
+        """ Append the payload to the service specific batch structure """
+        self._batch_payload['MetricData'].append(payload)
 
     def submit_payload(self, metric_name: str = None, timestamp: datetime = None, dimensions: (dict, list) = None,
                        value: (str, int) = None, unit: str = 'Count'):

@@ -9,11 +9,16 @@ class SQSBaseBatchDispatcher(BaseDispatcher):
 
     def __init__(self, queue_name, max_batch_size=10, flush_payload_on_max_batch_size=True):
         self.queue_name = queue_name
-        super().__init__('sqs', batch_dispatch_method='send_message_batch', individual_dispatch_method='send_message',
-                         batch_size=max_batch_size, flush_payload_on_max_batch_size=flush_payload_on_max_batch_size)
         self.queue_url = None
         self.batch_in_progress = None
         self.fifo_queue = False
+        super().__init__('sqs', batch_dispatch_method='send_message_batch', individual_dispatch_method='send_message',
+                         max_batch_size=max_batch_size, flush_payload_on_max_batch_size=flush_payload_on_max_batch_size)
+        self._aws_service_batch_max_payloads = None
+        self._aws_service_message_max_bytes = None
+        self._aws_service_batch_max_bytes = None
+        self._batch_payload = {'QueueUrl': self.queue_url, 'Entries': []}
+        self._validate_initialisation()
 
     def _process_batch_send_response(self, response: dict):
         """ Process the response data from a batch put request """
@@ -61,11 +66,15 @@ class SQSBatchDispatcher(SQSBaseBatchDispatcher):
         """ Push all records in the payload list to SQS """
         super().flush_payloads()
 
-    def submit_payload(self, payload: dict, message_id=str(uuid4()), delay_seconds: int = None,
+    def _append_payload_to_current_batch(self, payload):
+        """ Append the payload to the service specific batch structure """
+        self._batch_payload['Entries'].append(payload)
+
+    def submit_payload(self, payload: dict, message_id=str(uuid4()), delay_seconds=None,
                        message_group_id: str = 'unset'):
         """ Submit a record ready to be batched up and sent to SQS """
         logger.debug(f"Payload submitted to SQS dispatcher: {payload}")
-        if not any(d["Id"] == message_id for d in self._payload_list):
+        if not any(d["Id"] == message_id for d in self._batch_payload['Entries']):
             constructed_payload = {
                 'Id': message_id,
                 'MessageBody': str(payload)

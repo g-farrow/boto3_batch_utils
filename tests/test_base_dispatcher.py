@@ -23,13 +23,12 @@ mock_boto3_interface_type_mapper = {
 }
 
 
-@patch('boto3_batch_utils.Base._boto3_interface_type_mapper', mock_boto3_interface_type_mapper)
 @patch('boto3_batch_utils.Base.boto3.client', MockClient)
 @patch('boto3_batch_utils.Base.boto3', Mock())
 class InitialiseBatchUtilsClient(TestCase):
 
     def test_init(self):
-        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', batch_size=1,
+        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', max_batch_size=1,
                               flush_payload_on_max_batch_size=False)
         self.assertEqual('test_subject', base.aws_service_name)
         self.assertIsNone(base._aws_service)
@@ -39,7 +38,31 @@ class InitialiseBatchUtilsClient(TestCase):
         self.assertIsNone(base._individual_dispatch_method)
         self.assertEqual(1, base.max_batch_size)
         self.assertEqual(False, base.flush_payload_on_max_batch_size)
-        self.assertEqual([], base._payload_list)
+        self.assertIsNone(base._batch_payload)
+        self.assertIsNone(base._aws_service_batch_max_payloads)
+        self.assertIsNone(base._aws_service_message_max_bytes)
+        self.assertIsNone(base._aws_service_batch_max_bytes)
+
+
+@patch('boto3_batch_utils.Base.boto3.client', MockClient)
+@patch('boto3_batch_utils.Base.boto3', Mock())
+class TestValidateInitialisation(TestCase):
+
+    def test_initialisation_valid(self):
+        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', max_batch_size=1,
+                              flush_payload_on_max_batch_size=False)
+        base._aws_service_batch_max_payloads = 1
+
+        base._validate_initialisation()
+
+    def test_max_batch_too_large_raises_exception(self):
+        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', max_batch_size=2,
+                              flush_payload_on_max_batch_size=False)
+        base._aws_service_batch_max_payloads = 1
+
+        with self.assertRaises(ValueError) as context:
+            base._validate_initialisation()
+        self.assertIn("Requested max_batch_size '2' exceeds the test_subject maximum", str(context.exception))
 
 
 @patch('boto3_batch_utils.Base._boto3_interface_type_mapper', mock_boto3_interface_type_mapper)
@@ -48,7 +71,7 @@ class InitialiseBatchUtilsClient(TestCase):
 class InitialiseAwsClient(TestCase):
 
     def test_init(self):
-        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', batch_size=1,
+        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', max_batch_size=1,
                               flush_payload_on_max_batch_size=False)
         base._initialise_aws_client()
         self.assertEqual('test_subject_client', base._aws_service.client_name)
@@ -62,24 +85,17 @@ class InitialiseAwsClient(TestCase):
 class SubmitPayload(TestCase):
 
     def test_when_payload_list_is_empty(self):
-        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', batch_size=1,
+        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', max_batch_size=1,
                               flush_payload_on_max_batch_size=False)
+        base._validate_payload_byte_size = Mock(return_value=True)
+        base._append_payload_to_current_batch = Mock()
         base._flush_payload_selector = Mock()
         pl = "a"
         base.submit_payload(pl)
-        self.assertEqual(["a"], base._payload_list)
+        base._validate_payload_byte_size.assert_called_once_with(pl)
+        base._append_payload_to_current_batch.assert_called_once_with(pl)
         base._flush_payload_selector.assert_called_once()
 
-    def test_when_payload_list_is_not_empty(self):
-        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', batch_size=1,
-                              flush_payload_on_max_batch_size=False)
-        base._flush_payload_selector = Mock()
-        existing_payload_list = [1, 2, 3, 4, 5, {"6": "seven"}]
-        base._payload_list = existing_payload_list
-        pl = "a"
-        base.submit_payload(pl)
-        self.assertEqual([1, 2, 3, 4, 5, {"6": "seven"}, "a"], base._payload_list)
-        base._flush_payload_selector.assert_called_once()
 
 
 @patch('boto3_batch_utils.Base._boto3_interface_type_mapper', mock_boto3_interface_type_mapper)
@@ -88,33 +104,33 @@ class SubmitPayload(TestCase):
 class PayloadSelectorWhenFlushOnMaxIsTrue(TestCase):
 
     def test_empty_payload_list(self):
-        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', batch_size=3,
+        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', max_batch_size=3,
                               flush_payload_on_max_batch_size=True)
-        base._payload_list = []
+        base._batch_payload = []
         base._batch_send_payloads = Mock()
         base._flush_payload_selector()
         base._batch_send_payloads.assert_not_called()
 
     def test_payload_list_less_than_max_batch_size(self):
-        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', batch_size=3,
+        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', max_batch_size=3,
                               flush_payload_on_max_batch_size=True)
-        base._payload_list = [1, 2]
+        base._batch_payload = [1, 2]
         base._batch_send_payloads = Mock()
         base._flush_payload_selector()
         base._batch_send_payloads.assert_not_called()
 
     def test_payload_list_equal_max_batch_size(self):
-        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', batch_size=3,
+        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', max_batch_size=3,
                               flush_payload_on_max_batch_size=True)
-        base._payload_list = [1, 2, 3]
+        base._batch_payload = [1, 2, 3]
         base._batch_send_payloads = Mock()
         base._flush_payload_selector()
         base._batch_send_payloads.assert_called_once_with([1, 2, 3])
 
     def test_payload_list_greater_than_max_batch_size(self):
-        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', batch_size=3,
+        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', max_batch_size=3,
                               flush_payload_on_max_batch_size=True)
-        base._payload_list = [1, 2, 3, 4]
+        base._batch_payload = [1, 2, 3, 4]
         base._batch_send_payloads = Mock()
         base._flush_payload_selector()
         base._batch_send_payloads.assert_has_calls([call([1, 2, 3]), call([4])])
@@ -126,33 +142,33 @@ class PayloadSelectorWhenFlushOnMaxIsTrue(TestCase):
 class PayloadSelectorWhenFlushOnMaxIsFalse(TestCase):
 
     def test_empty_payload_list(self):
-        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', batch_size=3,
+        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', max_batch_size=3,
                               flush_payload_on_max_batch_size=False)
-        base._payload_list = []
+        base._batch_payload = []
         base._batch_send_payloads = Mock()
         base._flush_payload_selector()
         base._batch_send_payloads.assert_not_called()
 
     def test_payload_list_less_than_max_batch_size(self):
-        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', batch_size=3,
+        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', max_batch_size=3,
                               flush_payload_on_max_batch_size=False)
-        base._payload_list = [1, 2]
+        base._batch_payload = [1, 2]
         base._batch_send_payloads = Mock()
         base._flush_payload_selector()
         base._batch_send_payloads.assert_not_called()
 
     def test_payload_list_equal_max_batch_size(self):
-        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', batch_size=3,
+        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', max_batch_size=3,
                               flush_payload_on_max_batch_size=False)
-        base._payload_list = [1, 2, 3]
+        base._batch_payload = [1, 2, 3]
         base._batch_send_payloads = Mock()
         base._flush_payload_selector()
         base._batch_send_payloads.assert_not_called()
 
     def test_payload_list_greater_than_max_batch_size(self):
-        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', batch_size=3,
+        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', max_batch_size=3,
                               flush_payload_on_max_batch_size=False)
-        base._payload_list = [1, 2, 3, 4]
+        base._batch_payload = [1, 2, 3, 4]
         base._batch_send_payloads = Mock()
         base._flush_payload_selector()
         base._batch_send_payloads.assert_not_called()
@@ -165,52 +181,52 @@ class PayloadSelectorWhenFlushOnMaxIsFalse(TestCase):
 class FlushPayloads(TestCase):
 
     def test_empty_payload_list(self, mock_chunks):
-        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', batch_size=3,
+        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', max_batch_size=3,
                               flush_payload_on_max_batch_size=False)
-        base._payload_list = []
+        base._batch_payload = []
         base._initialise_aws_client = Mock()
         base._batch_send_payloads = Mock()
         mock_chunks.return_value = [[]]
         base.flush_payloads()
         base._initialise_aws_client.assert_called_once()
         base._batch_send_payloads.assert_not_called()
-        self.assertEqual([], base._payload_list)
+        self.assertEqual([], base._batch_payload)
 
     def test_payload_partial_max_batch_size(self, mock_chunks):
-        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', batch_size=3,
+        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', max_batch_size=3,
                               flush_payload_on_max_batch_size=False)
-        base._payload_list = [1, 2]
+        base._batch_payload = [1, 2]
         base._initialise_aws_client = Mock()
         base._batch_send_payloads = Mock()
         mock_chunks.return_value = [[1, 2]]
         base.flush_payloads()
         base._initialise_aws_client.assert_called_once()
         base._batch_send_payloads.assert_called_once_with([1, 2])
-        self.assertEqual([], base._payload_list)
+        self.assertEqual([], base._batch_payload)
 
     def test_payload_equal_max_batch_size(self, mock_chunks):
-        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', batch_size=3,
+        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', max_batch_size=3,
                               flush_payload_on_max_batch_size=False)
-        base._payload_list = [1, 2, 3]
+        base._batch_payload = [1, 2, 3]
         base._initialise_aws_client = Mock()
         base._batch_send_payloads = Mock()
         mock_chunks.return_value = [[1, 2, 3]]
         base.flush_payloads()
         base._initialise_aws_client.assert_called_once()
         base._batch_send_payloads.assert_called_once_with([1, 2, 3])
-        self.assertEqual([], base._payload_list)
+        self.assertEqual([], base._batch_payload)
 
     def test_payload_multiple_batches(self, mock_chunks):
-        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', batch_size=3,
+        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', max_batch_size=3,
                               flush_payload_on_max_batch_size=False)
-        base._payload_list = [1, 2, 3, 4]
+        base._batch_payload = [1, 2, 3, 4]
         base._initialise_aws_client = Mock()
         base._batch_send_payloads = Mock()
         mock_chunks.return_value = [[1, 2, 3], [4]]
         base.flush_payloads()
         base._initialise_aws_client.assert_called_once()
         base._batch_send_payloads.assert_has_calls([call([1, 2, 3]), call([4])])
-        self.assertEqual([], base._payload_list)
+        self.assertEqual([], base._batch_payload)
 
 
 @patch('boto3_batch_utils.Base._boto3_interface_type_mapper', mock_boto3_interface_type_mapper)
@@ -219,7 +235,7 @@ class FlushPayloads(TestCase):
 class BatchSendPayloads(TestCase):
 
     def test_empty_list(self):
-        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', batch_size=3,
+        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', max_batch_size=3,
                               flush_payload_on_max_batch_size=False)
         test_batch = []
         base._batch_dispatch_method = Mock(return_value="batch_response")
@@ -229,7 +245,7 @@ class BatchSendPayloads(TestCase):
         base._process_batch_send_response.assert_called_once_with("batch_response")
 
     def test_empty_dict(self):
-        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', batch_size=3,
+        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', max_batch_size=3,
                               flush_payload_on_max_batch_size=False)
         test_batch = {}
         base._batch_dispatch_method = Mock(return_value="batch_response")
@@ -239,7 +255,7 @@ class BatchSendPayloads(TestCase):
         base._process_batch_send_response.assert_called_once_with("batch_response")
 
     def test_list(self):
-        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', batch_size=3,
+        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', max_batch_size=3,
                               flush_payload_on_max_batch_size=False)
         test_batch = [1, 2, 3, 4, 5, 6, 7, 8, 9]
         base._batch_dispatch_method = Mock(return_value="batch_response")
@@ -249,7 +265,7 @@ class BatchSendPayloads(TestCase):
         base._process_batch_send_response.assert_called_once_with("batch_response")
 
     def test_dict(self):
-        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', batch_size=3,
+        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', max_batch_size=3,
                               flush_payload_on_max_batch_size=False)
         test_batch = {'something_to_process': [1, 2, 3, 4, 5, 6]}
         base._batch_dispatch_method = Mock(return_value="batch_response")
@@ -259,7 +275,7 @@ class BatchSendPayloads(TestCase):
         base._process_batch_send_response.assert_called_once_with("batch_response")
 
     def test_list_client_error(self):
-        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', batch_size=3,
+        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', max_batch_size=3,
                               flush_payload_on_max_batch_size=False)
         test_batch = []
         base._batch_dispatch_method = Mock(side_effect=ClientError({"Error": {"message": "Something went wrong", "code": 0}}, "A Test"))
@@ -272,7 +288,7 @@ class BatchSendPayloads(TestCase):
             base._process_batch_send_response.assert_not_called()
 
     def test_dict_client_error(self):
-        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', batch_size=3,
+        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', max_batch_size=3,
                               flush_payload_on_max_batch_size=False)
         test_batch = {}
         base._batch_dispatch_method = Mock(
@@ -300,7 +316,7 @@ class BatchSendPayloads(TestCase):
 class SendIndividualPayload(TestCase):
 
     def test_successful_send_non_dict(self):
-        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', batch_size=3,
+        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', max_batch_size=3,
                               flush_payload_on_max_batch_size=False)
         base._individual_dispatch_method = Mock()
         test_payload = "abc"
@@ -308,7 +324,7 @@ class SendIndividualPayload(TestCase):
         base._individual_dispatch_method.assert_called_once_with(test_payload)
 
     def test_successfully_sent_after_4_failures(self):
-        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', batch_size=3,
+        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', max_batch_size=3,
                               flush_payload_on_max_batch_size=False)
         client_error = ClientError({"Error": {"message": "Something went wrong", "code": 0}}, "A Test")
         base._individual_dispatch_method = Mock(side_effect=[client_error, client_error, client_error, client_error, ""])
@@ -323,7 +339,7 @@ class SendIndividualPayload(TestCase):
         ])
 
     def test_non_dict_raises_client_error_sent_after_5_failures(self):
-        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', batch_size=3,
+        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', max_batch_size=3,
                               flush_payload_on_max_batch_size=False)
         client_error = ClientError({"Error": {"message": "Something went wrong", "code": 0}}, "A Test")
         base._individual_dispatch_method = Mock(side_effect=[client_error, client_error, client_error, client_error,
@@ -341,7 +357,7 @@ class SendIndividualPayload(TestCase):
 
 
     def test_successful_send_dict(self):
-        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', batch_size=3,
+        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', max_batch_size=3,
                               flush_payload_on_max_batch_size=False)
         base._individual_dispatch_method = Mock()
         test_payload = {"abc": 123}
@@ -349,7 +365,7 @@ class SendIndividualPayload(TestCase):
         base._individual_dispatch_method.assert_called_once_with(**test_payload)
 
     def test_successfully_sent_after_4_failures_dict(self):
-        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', batch_size=3,
+        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', max_batch_size=3,
                               flush_payload_on_max_batch_size=False)
         client_error = ClientError({"Error": {"message": "Something went wrong", "code": 0}}, "A Test")
         base._individual_dispatch_method = Mock(side_effect=[client_error, client_error, client_error, client_error, ""])
@@ -364,7 +380,7 @@ class SendIndividualPayload(TestCase):
         ])
 
     def test_dict_raises_client_error_after_5_failures(self):
-        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', batch_size=3,
+        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', max_batch_size=3,
                               flush_payload_on_max_batch_size=False)
         client_error = ClientError({"Error": {"message": "Something went wrong", "code": 0}}, "A Test")
         base._individual_dispatch_method = Mock(side_effect=[client_error, client_error, client_error, client_error,
@@ -379,3 +395,44 @@ class SendIndividualPayload(TestCase):
             call(**test_payload),
             call(**test_payload)
         ])
+
+
+@patch('boto3_batch_utils.Base.boto3.client', MockClient)
+@patch('boto3_batch_utils.Base.boto3', Mock())
+@patch('boto3_batch_utils.Base.get_byte_size_of_string')
+class TestValidatePayloadByteSize(TestCase):
+
+    def test_less_than_max(self, mock_get_byte_size_of_string):
+        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', max_batch_size=1,
+                              flush_payload_on_max_batch_size=False)
+        base._aws_service_message_max_bytes = 2
+        mock_get_byte_size_of_string.return_value = 1
+        test_pl = {'stuff': True}
+
+        base._validate_payload_byte_size(test_pl)
+
+        mock_get_byte_size_of_string.assert_called_once_with(test_pl)
+
+    def test_equals_max(self, mock_get_byte_size_of_string):
+        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', max_batch_size=1,
+                              flush_payload_on_max_batch_size=False)
+        base._aws_service_message_max_bytes = 1
+        mock_get_byte_size_of_string.return_value = 1
+        test_pl = {'stuff': True}
+
+        base._validate_payload_byte_size(test_pl)
+
+        mock_get_byte_size_of_string.assert_called_once_with(test_pl)
+
+    def test_more_than_max(self, mock_get_byte_size_of_string):
+        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', max_batch_size=1,
+                              flush_payload_on_max_batch_size=False)
+        base._aws_service_message_max_bytes = 1
+        mock_get_byte_size_of_string.return_value = 2
+        test_pl = {'stuff': True}
+
+        with self.assertRaises(ValueError) as context:
+            base._validate_payload_byte_size(test_pl)
+        self.assertIn("Submitted payload exceeds the maximum payload size for test_subject", str(context.exception))
+
+        mock_get_byte_size_of_string.assert_called_once_with(test_pl)
