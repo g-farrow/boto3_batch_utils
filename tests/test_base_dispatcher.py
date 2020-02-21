@@ -399,40 +399,40 @@ class SendIndividualPayload(TestCase):
 
 @patch('boto3_batch_utils.Base.boto3.client', MockClient)
 @patch('boto3_batch_utils.Base.boto3', Mock())
-@patch('boto3_batch_utils.Base.get_byte_size_of_string')
+@patch('boto3_batch_utils.Base.get_byte_size_of_dict_or_list')
 class TestValidatePayloadByteSize(TestCase):
 
-    def test_less_than_max(self, mock_get_byte_size_of_string):
+    def test_less_than_max(self, mock_get_byte_size_of_dict_or_list):
         base = BaseDispatcher('test_subject', 'send_lots', 'send_one', max_batch_size=1,
                               flush_payload_on_max_batch_size=False)
         base._aws_service_message_max_bytes = 2
-        mock_get_byte_size_of_string.return_value = 1
+        mock_get_byte_size_of_dict_or_list.return_value = 1
         test_pl = {'stuff': True}
 
         base._validate_payload_byte_size(test_pl)
 
-        mock_get_byte_size_of_string.assert_called_once_with(test_pl)
+        mock_get_byte_size_of_dict_or_list.assert_called_once_with(test_pl)
 
-    def test_equals_max(self, mock_get_byte_size_of_string):
+    def test_equals_max(self, mock_get_byte_size_of_dict_or_list):
         base = BaseDispatcher('test_subject', 'send_lots', 'send_one', max_batch_size=1,
                               flush_payload_on_max_batch_size=False)
         base._aws_service_message_max_bytes = 1
-        mock_get_byte_size_of_string.return_value = 1
+        mock_get_byte_size_of_dict_or_list.return_value = 1
         test_pl = {'stuff': True}
 
         base._validate_payload_byte_size(test_pl)
 
-        mock_get_byte_size_of_string.assert_called_once_with(test_pl)
+        mock_get_byte_size_of_dict_or_list.assert_called_once_with(test_pl)
 
-    def test_more_than_max(self, mock_get_byte_size_of_string):
+    def test_more_than_max(self, mock_get_byte_size_of_dict_or_list):
         base = BaseDispatcher('test_subject', 'send_lots', 'send_one', max_batch_size=1,
                               flush_payload_on_max_batch_size=False)
         base._aws_service_message_max_bytes = 1
-        mock_get_byte_size_of_string.return_value = 2
+        mock_get_byte_size_of_dict_or_list.return_value = 2
         test_pl = {'stuff': True}
 
         with self.assertRaises(ValueError) as context:
             base._validate_payload_byte_size(test_pl)
         self.assertIn("Submitted payload exceeds the maximum payload size for test_subject", str(context.exception))
 
-        mock_get_byte_size_of_string.assert_called_once_with(test_pl)
+        mock_get_byte_size_of_dict_or_list.assert_called_once_with(test_pl)
