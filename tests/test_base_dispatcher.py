@@ -87,15 +87,41 @@ class SubmitPayload(TestCase):
     def test_when_payload_list_is_empty(self):
         base = BaseDispatcher('test_subject', 'send_lots', 'send_one', max_batch_size=1,
                               flush_payload_on_max_batch_size=False)
-        base._validate_payload_byte_size = Mock(return_value=True)
+        base._aws_service_message_max_bytes = 15
+        base._aws_service_batch_max_bytes = 15
         base._append_payload_to_current_batch = Mock()
         base._flush_payload_selector = Mock()
-        pl = "a"
+        pl = {"a": True}
         base.submit_payload(pl)
-        base._validate_payload_byte_size.assert_called_once_with(pl)
         base._append_payload_to_current_batch.assert_called_once_with(pl)
         base._flush_payload_selector.assert_called_once()
 
+    def test_when_payload_is_over_byte_size(self):
+        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', max_batch_size=1,
+                              flush_payload_on_max_batch_size=False)
+        base._aws_service_message_max_bytes = 10
+        base._aws_service_batch_max_bytes = 15
+        base._append_payload_to_current_batch = Mock()
+        base._flush_payload_selector = Mock()
+        pl = {"a": True}
+        with self.assertRaises(ValueError) as context:
+            base.submit_payload(pl)
+        self.assertIn("exceeds the maximum payload size", str(context.exception))
+        base._append_payload_to_current_batch.assert_not_called()
+        base._flush_payload_selector.assert_not_called()
+
+    def test_when_payload_is_equal_to_byte_size(self):
+        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', max_batch_size=1,
+                              flush_payload_on_max_batch_size=False)
+        base._aws_service_message_max_bytes = 11
+        base._aws_service_batch_max_bytes = 15
+        base._validate_payload_byte_size = Mock(return_value=True)
+        base._append_payload_to_current_batch = Mock()
+        base._flush_payload_selector = Mock()
+        pl = {"a": True}
+        base.submit_payload(pl)
+        base._append_payload_to_current_batch.assert_called_once_with(pl)
+        base._flush_payload_selector.assert_called_once()
 
 
 @patch('boto3_batch_utils.Base._boto3_interface_type_mapper', mock_boto3_interface_type_mapper)
