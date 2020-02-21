@@ -2,7 +2,7 @@ import logging
 import boto3
 from botocore.exceptions import ClientError
 
-from boto3_batch_utils.utils import chunks, get_byte_size_of_dict_or_list, get_byte_size_of_string
+from boto3_batch_utils.utils import chunks, get_byte_size_of_dict_or_list
 
 logger = logging.getLogger('boto3-batch-utils')
 
@@ -133,9 +133,15 @@ class BaseDispatcher:
             logger.debug(f"Max batch size of {self.max_batch_size} for {self.aws_service_name} "
                          "has not yet been reached, continuing")
 
-    # def _prevent_batch_bytes_overload(self):
-    #     """ Check that adding appending the payload to the exiting batch does not overload the batch byte limit """
-    #     batch_byte_size = get_byte_size_of_dict(self._payload_list)
+    def _prevent_batch_bytes_overload(self, payload: dict):
+        """ Check that adding appending the payload to the exiting batch does not overload the batch byte limit """
+        current_batch_payload_byte_size = get_byte_size_of_dict_or_list(self._batch_payload)
+        payload_byte_size = get_byte_size_of_dict_or_list(payload)
+        if (current_batch_payload_byte_size + payload_byte_size) > self._aws_service_batch_max_bytes:
+            logger.debug(f"Adding payload ({payload_byte_size} bytes) to the existing batch "
+                         f"({current_batch_payload_byte_size} bytes) would exceed the batch limit for "
+                         f"{self.aws_service_name}, calling flush_payloads")
+            self.flush_payloads()
 
     def _validate_payload_byte_size(self, payload):
         """ Validate that the payload is within the byte size limit for the AWS service """
@@ -149,6 +155,7 @@ class BaseDispatcher:
     def submit_payload(self, payload: dict):
         """ Submit a metric ready to be batched up and sent to Cloudwatch """
         self._validate_payload_byte_size(payload)
+        self._prevent_batch_bytes_overload(payload)
         self._append_payload_to_current_batch(payload)
         logger.debug(f"Payload has been added to the {self.aws_service_name} dispatcher payload list: {payload}")
         self._flush_payload_selector()
