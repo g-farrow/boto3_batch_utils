@@ -459,6 +459,6 @@ class TestValidatePayloadByteSize(TestCase):
 
         with self.assertRaises(ValueError) as context:
             base._validate_payload_byte_size(test_pl)
-        self.assertIn("Submitted payload exceeds the maximum payload size for test_subject", str(context.exception))
+        self.assertIn("exceeds the maximum payload size", str(context.exception))
 
         mock_get_byte_size_of_dict_or_list.assert_has_calls([call({}), call(test_pl)], any_order=True)
