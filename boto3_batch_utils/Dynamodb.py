@@ -27,7 +27,8 @@ class DynamoBatchDispatcher(BaseDispatcher):
         self._aws_service_batch_max_payloads = constants.DYNAMODB_BATCH_MAX_PAYLOADS
         self._aws_service_message_max_bytes = constants.DYNAMODB_MESSAGE_MAX_BYTES
         self._aws_service_batch_max_bytes = constants.DYNAMODB_BATCH_MAX_BYTES
-        self._batch_payload = {'RequestItems': {self.dynamo_table_name: []}}
+        self._batch_payload_wrapper = {'RequestItems': {self.dynamo_table_name: []}}
+        self._batch_payload = []
         self._validate_initialisation()
 
     def __str__(self):
@@ -89,7 +90,7 @@ class DynamoBatchDispatcher(BaseDispatcher):
 
     def _append_payload_to_current_batch(self, payload):
         """ Append the payload to the service specific batch structure """
-        self._batch_payload['RequestItems'][self.dynamo_table_name].append(payload)
+        self._batch_payload.append(payload)
 
     def submit_payload(self, payload, partition_key_location: str = "Id"):
         """
@@ -126,7 +127,7 @@ class DynamoBatchDispatcher(BaseDispatcher):
         """
         logger.debug("Checking if the partition key already exists in the existing batch")
         if any(d['PutRequest']['Item'][self.partition_key] == payload[self.partition_key]
-               for d in self._batch_payload['RequestItems'][self.dynamo_table_name]):
+               for d in self._batch_payload):
             logger.debug("This payload has already been submitted")
             return False
         else:
@@ -142,7 +143,7 @@ class DynamoBatchDispatcher(BaseDispatcher):
         if any(
                 (d['PutRequest']['Item'][self.partition_key] == payload[self.partition_key] and
                  d['PutRequest']['Item'][self.sort_key] == payload[self.sort_key])
-                for d in self._batch_payload['RequestItems'][self.dynamo_table_name]
+                for d in self._batch_payload
         ):
             logger.debug("This payload has already been submitted")
             return False

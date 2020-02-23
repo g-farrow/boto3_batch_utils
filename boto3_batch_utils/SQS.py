@@ -18,7 +18,8 @@ class SQSBaseBatchDispatcher(BaseDispatcher):
         self._aws_service_batch_max_payloads = constants.SQS_MAX_BATCH_PAYLOADS
         self._aws_service_message_max_bytes = constants.SQS_MESSAGE_MAX_BYTES
         self._aws_service_batch_max_bytes = constants.SQS_BATCH_MAX_BYTES
-        self._batch_payload = {'QueueUrl': self.queue_url, 'Entries': []}
+        self._batch_payload_wrapper = {'QueueUrl': self.queue_url, 'Entries': []}
+        self._batch_payload = []
         self._validate_initialisation()
 
     def _process_batch_send_response(self, response: dict):
@@ -69,13 +70,13 @@ class SQSBatchDispatcher(SQSBaseBatchDispatcher):
 
     def _append_payload_to_current_batch(self, payload):
         """ Append the payload to the service specific batch structure """
-        self._batch_payload['Entries'].append(payload)
+        self._batch_payload.append(payload)
 
     def submit_payload(self, payload: dict, message_id=str(uuid4()), delay_seconds=None,
                        message_group_id: str = 'unset'):
         """ Submit a record ready to be batched up and sent to SQS """
         logger.debug(f"Payload submitted to SQS dispatcher: {payload}")
-        if not any(d["Id"] == message_id for d in self._batch_payload['Entries']):
+        if not any(d["Id"] == message_id for d in self._batch_payload):
             constructed_payload = {
                 'Id': message_id,
                 'MessageBody': str(payload)
@@ -117,7 +118,7 @@ class SQSFifoBatchDispatcher(SQSBaseBatchDispatcher):
             'MessageGroupId': message_group_id
         }
         if message_deduplication_id:
-            if not any(d['MessageDeduplicationId'] == message_deduplication_id for d in self._payload_list):
+            if not any(d['MessageDeduplicationId'] == message_deduplication_id for d in self._batch_payload):
                 constructed_payload['MessageDeduplicationId'] = message_deduplication_id
             else:
                 logger.debug(f"Message with message_id ({message_id}) already exists in the batch, skipping...")

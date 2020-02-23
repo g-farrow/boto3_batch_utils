@@ -124,7 +124,7 @@ class TestCheckPayloadIsUniqueByPartitionKey(TestCase):
 
     def test_empty_batch(self):
         dy = DynamoBatchDispatcher('test_table_name', 'p_key', max_batch_size=1, flush_payload_on_max_batch_size=False)
-        dy._batch_payload = {'RequestItems': {'test_table_name': []}}
+        dy._batch_payload = []
 
         test_payload = {'p_key': 'abc'}
 
@@ -132,7 +132,7 @@ class TestCheckPayloadIsUniqueByPartitionKey(TestCase):
 
     def test_record_already_in_batch(self):
         dy = DynamoBatchDispatcher('test_table_name', 'p_key', max_batch_size=1, flush_payload_on_max_batch_size=False)
-        dy._batch_payload = {'RequestItems': {'test_table_name': [{'PutRequest': {'Item': {'p_key': 'abc'}}}]}}
+        dy._batch_payload = [{'PutRequest': {'Item': {'p_key': 'abc'}}}]
 
         test_payload = {'p_key': 'abc'}
 
@@ -140,7 +140,7 @@ class TestCheckPayloadIsUniqueByPartitionKey(TestCase):
 
     def test_record_not_in_batch(self):
         dy = DynamoBatchDispatcher('test_table_name', 'p_key', max_batch_size=1, flush_payload_on_max_batch_size=False)
-        dy._batch_payload = {'RequestItems': {'test_table_name': [{'PutRequest': {'Item': {'p_key': 'cde'}}}]}}
+        dy._batch_payload = [{'PutRequest': {'Item': {'p_key': 'cde'}}}]
 
         test_payload = {'p_key': 'abc'}
 
@@ -154,7 +154,7 @@ class TestCheckPayloadIsUniqueByPartitionKeyAndSortKey(TestCase):
     def test_empty_batch(self):
         dy = DynamoBatchDispatcher('test_table_name', 'p_key', max_batch_size=1, flush_payload_on_max_batch_size=False,
                                    sort_key='s_key')
-        dy._batch_payload = {'RequestItems': {'test_table_name': []}}
+        dy._batch_payload = []
 
         test_payload = {'p_key': 'abc', 's_key': 'def'}
 
@@ -163,9 +163,7 @@ class TestCheckPayloadIsUniqueByPartitionKeyAndSortKey(TestCase):
     def test_sort_key_in_batch_partition_key_is_not(self):
         dy = DynamoBatchDispatcher('test_table_name', 'p_key', max_batch_size=1, flush_payload_on_max_batch_size=False,
                                    sort_key='s_key')
-        dy._batch_payload = {
-            'RequestItems': {'test_table_name': [{'PutRequest': {'Item': {'p_key': 'cde', 's_key': 'def'}}}]}
-        }
+        dy._batch_payload = [{'PutRequest': {'Item': {'p_key': 'cde', 's_key': 'def'}}}]
 
         test_payload = {'p_key': 'abc', 's_key': 'def'}
 
@@ -174,9 +172,7 @@ class TestCheckPayloadIsUniqueByPartitionKeyAndSortKey(TestCase):
     def test_sort_key_not_in_batch_partition_key_is(self):
         dy = DynamoBatchDispatcher('test_table_name', 'p_key', max_batch_size=1, flush_payload_on_max_batch_size=False,
                                    sort_key='s_key')
-        dy._batch_payload = {
-            'RequestItems': {'test_table_name': [{'PutRequest': {'Item': {'p_key': 'abc', 's_key': 'ghi'}}}]}
-        }
+        dy._batch_payload = [{'PutRequest': {'Item': {'p_key': 'abc', 's_key': 'ghi'}}}]
 
         test_payload = {'p_key': 'abc', 's_key': 'def'}
 
@@ -185,9 +181,7 @@ class TestCheckPayloadIsUniqueByPartitionKeyAndSortKey(TestCase):
     def test_sort_key_and_partition_key_in_batch(self):
         dy = DynamoBatchDispatcher('test_table_name', 'p_key', max_batch_size=1, flush_payload_on_max_batch_size=False,
                                    sort_key='s_key')
-        dy._batch_payload = {
-            'RequestItems': {'test_table_name': [{'PutRequest': {'Item': {'p_key': 'abc', 's_key': 'def'}}}]}
-        }
+        dy._batch_payload = [{'PutRequest': {'Item': {'p_key': 'abc', 's_key': 'def'}}}]
 
         test_payload = {'p_key': 'abc', 's_key': 'def'}
 

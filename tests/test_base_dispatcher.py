@@ -437,7 +437,7 @@ class TestValidatePayloadByteSize(TestCase):
 
         base._validate_payload_byte_size(test_pl)
 
-        mock_get_byte_size_of_dict_or_list.assert_called_once_with(test_pl)
+        mock_get_byte_size_of_dict_or_list.assert_has_calls([call({}), call(test_pl)], any_order=True)
 
     def test_equals_max(self, mock_get_byte_size_of_dict_or_list):
         base = BaseDispatcher('test_subject', 'send_lots', 'send_one', max_batch_size=1,
@@ -448,7 +448,7 @@ class TestValidatePayloadByteSize(TestCase):
 
         base._validate_payload_byte_size(test_pl)
 
-        mock_get_byte_size_of_dict_or_list.assert_called_once_with(test_pl)
+        mock_get_byte_size_of_dict_or_list.assert_has_calls([call({}), call(test_pl)], any_order=True)
 
     def test_more_than_max(self, mock_get_byte_size_of_dict_or_list):
         base = BaseDispatcher('test_subject', 'send_lots', 'send_one', max_batch_size=1,
@@ -461,4 +461,4 @@ class TestValidatePayloadByteSize(TestCase):
             base._validate_payload_byte_size(test_pl)
         self.assertIn("Submitted payload exceeds the maximum payload size for test_subject", str(context.exception))
 
-        mock_get_byte_size_of_dict_or_list.assert_called_once_with(test_pl)
+        mock_get_byte_size_of_dict_or_list.assert_has_calls([call({}), call(test_pl)], any_order=True)

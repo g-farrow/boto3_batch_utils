@@ -41,7 +41,10 @@ class BaseDispatcher:
         self._aws_service_batch_max_payloads = None
         self._aws_service_message_max_bytes = None
         self._aws_service_batch_max_bytes = None
+        self._batch_payload_wrapper = {}
         self._batch_payload = None
+        self._batch_payload_wrapper_byte_size = get_byte_size_of_dict_or_list(self._batch_payload_wrapper) - 2
+        #  Remove 2 bytes for the `[]` which exists in the wrapper and the batch itself, therefore duplicated
         logger.debug(f"Batch dispatch initialised: {self.aws_service_name}")
 
     def _validate_initialisation(self):
@@ -136,6 +139,7 @@ class BaseDispatcher:
     def _prevent_batch_bytes_overload(self, payload: dict):
         """ Check that adding appending the payload to the exiting batch does not overload the batch byte limit """
         current_batch_payload_byte_size = get_byte_size_of_dict_or_list(self._batch_payload)
+        current_batch_payload_byte_size += self._batch_payload_wrapper_byte_size
         payload_byte_size = get_byte_size_of_dict_or_list(payload)
         if (current_batch_payload_byte_size + payload_byte_size) > self._aws_service_batch_max_bytes:
             logger.debug(f"Adding payload ({payload_byte_size} bytes) to the existing batch "

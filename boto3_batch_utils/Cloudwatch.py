@@ -25,7 +25,8 @@ class CloudwatchBatchDispatcher(BaseDispatcher):
         self._aws_service_batch_max_payloads = constants.CLOUDWATCH_BATCH_MAX_PAYLOADS
         self._aws_service_message_max_bytes = constants.CLOUDWATCH_MESSAGE_MAX_BYTES
         self._aws_service_batch_max_bytes = constants.CLOUDWATCH_BATCH_MAX_BYTES
-        self._batch_payload = {'Namespace': self.namespace, 'MetricData': []}
+        self._batch_payload_wrapper = {'Namespace': self.namespace, 'MetricData': []}
+        self._batch_payload = []
         self._validate_initialisation()
 
     def __str__(self):
@@ -52,7 +53,7 @@ class CloudwatchBatchDispatcher(BaseDispatcher):
 
     def _append_payload_to_current_batch(self, payload):
         """ Append the payload to the service specific batch structure """
-        self._batch_payload['MetricData'].append(payload)
+        self._batch_payload.append(payload)
 
     def submit_payload(self, metric_name: str = None, timestamp: datetime = None, dimensions: (dict, list) = None,
                        value: (str, int) = None, unit: str = 'Count'):

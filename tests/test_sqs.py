@@ -84,7 +84,7 @@ class SubmitPayload(TestCase):
         fifo = SQSFifoBatchDispatcher('test_queue', max_batch_size=2, flush_payload_on_max_batch_size=False)
         test_message = {'something': 'else'}
         test_id = 123
-        fifo._payload_list = [{
+        fifo._batch_payload = [{
             'Id': 'abcdefg',
             'MessageBody': str(test_message),
             'MessageGroupId': 'asdfg',

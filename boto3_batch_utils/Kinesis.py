@@ -26,7 +26,8 @@ class KinesisBatchDispatcher(BaseDispatcher):
         self._aws_service_batch_max_payloads = constants.KINESIS_BATCH_MAX_PAYLOADS
         self._aws_service_message_max_bytes = constants.KINESIS_MESSAGE_MAX_BYTES
         self._aws_service_batch_max_bytes = constants.KINESIS_BATCH_MAX_BYTES
-        self._batch_payload = {'StreamName': self.stream_name, 'Records': []}
+        self._batch_payload_wrapper = {'StreamName': self.stream_name, 'Records': []}
+        self._batch_payload = []
         self._validate_initialisation()
 
     def __str__(self):
@@ -92,7 +93,7 @@ class KinesisBatchDispatcher(BaseDispatcher):
 
     def _append_payload_to_current_batch(self, payload):
         """ Append the payload to the service specific batch structure """
-        self._batch_payload['Records'].append(payload)
+        self._batch_payload.append(payload)
 
     def submit_payload(self, payload: dict):
         """ Submit a metric ready to be batched up and sent to Kinesis """
