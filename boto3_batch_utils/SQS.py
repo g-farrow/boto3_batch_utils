@@ -72,10 +72,10 @@ class SQSBatchDispatcher(SQSBaseBatchDispatcher):
         """ Append the payload to the service specific batch structure """
         self._batch_payload.append(payload)
 
-    def submit_payload(self, payload: dict, message_id=str(uuid4()), delay_seconds=None,
-                       message_group_id: str = 'unset'):
+    def submit_payload(self, payload: dict, message_id="", delay_seconds=None, message_group_id: str = 'unset'):
         """ Submit a record ready to be batched up and sent to SQS """
         logger.debug(f"Payload submitted to SQS dispatcher: {payload}")
+        message_id = message_id or str(uuid4())
         if not any(d["Id"] == message_id for d in self._batch_payload):
             constructed_payload = {
                 'Id': message_id,

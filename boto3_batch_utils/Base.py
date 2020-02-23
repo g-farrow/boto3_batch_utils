@@ -149,8 +149,10 @@ class BaseDispatcher:
 
     def _validate_payload_byte_size(self, payload):
         """ Validate that the payload is within the byte size limit for the AWS service """
-        if get_byte_size_of_dict_or_list(payload) > self._aws_service_message_max_bytes:
-            raise ValueError(f"Submitted payload exceeds the maximum payload size for {self.aws_service_name}")
+        payload_byte_size = get_byte_size_of_dict_or_list(payload)
+        if payload_byte_size > self._aws_service_message_max_bytes:
+            raise ValueError(f"Submitted payload ({payload_byte_size} bytes) exceeds the maximum payload size "
+                             f"({self._aws_service_message_max_bytes} bytes) for {self.aws_service_name}")
 
     def _append_payload_to_current_batch(self, payload):
         """ Append the payload to the service specific batch structure """
