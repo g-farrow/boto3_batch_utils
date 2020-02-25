@@ -39,7 +39,9 @@ class DynamoBatchDispatcher(BaseDispatcher):
         Initialise client/resource for the AWS service
         """
         super()._initialise_aws_client()
-        self._dynamo_table = self._aws_service.Table(self.dynamo_table_name)
+        if not self._dynamo_table:
+            self._dynamo_table = self._aws_service.Table(self.dynamo_table_name)
+        logger.debug(f"DynamoDB Table Client '{self.dynamo_table_name}' is now initialised")
 
     def _send_individual_payload(self, payload: dict, retry: int = 4):
         """
@@ -65,7 +67,7 @@ class DynamoBatchDispatcher(BaseDispatcher):
         """
         unprocessed_items = response['UnprocessedItems']
         if unprocessed_items:
-            logger.warning(f"Batch write failed to write all items, "
+            logger.warning(f"Batch write failed to write some items, "
                            f"{len(unprocessed_items[self.dynamo_table_name])} were rejected")
             for item in unprocessed_items[self.dynamo_table_name]:
                 if 'PutRequest' in item:
@@ -108,7 +110,6 @@ class DynamoBatchDispatcher(BaseDispatcher):
         else:
             logger.warning("The candidate payload has a primary_partition_key which already exists in the "
                            f"payload_list: {payload}")
-        self._flush_payload_selector()
 
     def _check_payload_is_unique(self, payload: dict) -> bool:
         """
