@@ -41,7 +41,7 @@ class DynamoBatchDispatcher(BaseDispatcher):
         super()._initialise_aws_client()
         if not self._dynamo_table:
             self._dynamo_table = self._aws_service.Table(self.dynamo_table_name)
-        logger.debug(f"DynamoDB Table Client '{self.dynamo_table_name}' is now initialised")
+            logger.debug(f"DynamoDB Table Client '{self.dynamo_table_name}' is now initialised")
 
     def _send_individual_payload(self, payload: dict, retry: int = 4):
         """

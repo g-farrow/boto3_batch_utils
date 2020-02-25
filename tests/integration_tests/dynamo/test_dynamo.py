@@ -3,8 +3,6 @@ from unittest.mock import patch, Mock, call
 
 from boto3_batch_utils import DynamoBatchDispatcher
 
-from .. import large_messages
-
 
 @patch('boto3_batch_utils.Base.boto3', Mock())
 class TestSqsStandard(TestCase):

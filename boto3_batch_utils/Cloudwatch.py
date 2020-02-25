@@ -55,8 +55,8 @@ class CloudwatchBatchDispatcher(BaseDispatcher):
         """ Append the payload to the service specific batch structure """
         self._batch_payload.append(payload)
 
-    def submit_payload(self, metric_name: str = None, timestamp: datetime = None, dimensions: (dict, list) = None,
-                       value: (str, int) = None, unit: str = 'Count'):
+    def submit_payload(self, metric_name: str, value: (str, int), timestamp: datetime = None,
+                       dimensions: (dict, list) = None, unit: str = 'Count'):
         """ Submit a metric ready to be batched up and sent to Cloudwatch """
         payload = {
                 'MetricName': metric_name,

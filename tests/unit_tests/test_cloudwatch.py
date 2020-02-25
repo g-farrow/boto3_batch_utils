@@ -22,12 +22,13 @@ class SubmitPayload(TestCase):
 
     def test(self, mock_submit_payload):
         cw = CloudwatchBatchDispatcher('test_space', max_batch_size=1, flush_payload_on_max_batch_size=False)
-        mock_metric_name = None
+        mock_metric_name = 'met'
         mock_timestamp = datetime.now()
         mock_dimensions = None
         mock_value = 123
         mock_unit = 'Bytes'
-        cw.submit_payload(mock_metric_name, mock_timestamp, mock_dimensions, mock_value, mock_unit)
+        cw.submit_payload(metric_name=mock_metric_name, value=mock_value, timestamp=mock_timestamp,
+                          dimensions=mock_dimensions, unit=mock_unit)
         mock_submit_payload.assert_called_once_with({
             'MetricName': mock_metric_name,
             'Timestamp': mock_timestamp,

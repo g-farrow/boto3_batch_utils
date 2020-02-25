@@ -67,7 +67,7 @@ class BaseDispatcher:
                 self._individual_dispatch_method = getattr(self._aws_service, self.individual_dispatch_method)
             else:
                 self._individual_dispatch_method = None
-        logger.debug("AWS/Boto3 Client is now initialised")
+            logger.debug("AWS/Boto3 Client is now initialised")
 
     def _send_individual_payload(self, payload: (dict, str), retry: int = 4):
         """ Send an individual payload to the subject """
@@ -105,7 +105,7 @@ class BaseDispatcher:
         except ClientError as e:
             if retry > 0:
                 logger.warning(f"{self.aws_service_name} batch send has caused an error, "
-                               f"retrying to send ({retry} retries remaining): {str(e)}")
+                               f"retrying send ({retry} retries remaining): {str(e)}")
                 logger.debug(f"Failed batch: (type: {type(batch)}) {batch}")
                 self._batch_send_payloads(batch, retry=retry-1)
             else:
