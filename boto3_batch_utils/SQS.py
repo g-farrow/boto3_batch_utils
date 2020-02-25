@@ -1,6 +1,9 @@
 import logging
 from uuid import uuid4
+from json import dumps
+
 from boto3_batch_utils.Base import BaseDispatcher
+from boto3_batch_utils.utils import DecimalEncoder
 from boto3_batch_utils import constants
 
 logger = logging.getLogger('boto3-batch-utils')
@@ -79,7 +82,7 @@ class SQSBatchDispatcher(SQSBaseBatchDispatcher):
         if not any(d["Id"] == message_id for d in self._batch_payload):
             constructed_payload = {
                 'Id': message_id,
-                'MessageBody': str(payload)
+                'MessageBody': dumps(payload, cls=DecimalEncoder)
                 }
             if isinstance(delay_seconds, int):
                 constructed_payload['DelaySeconds'] = delay_seconds
@@ -108,13 +111,17 @@ class SQSFifoBatchDispatcher(SQSBaseBatchDispatcher):
         }
         super()._send_individual_payload(kwargs, retry=4)
 
+    def _append_payload_to_current_batch(self, payload):
+        """ Append the payload to the service specific batch structure """
+        self._batch_payload.append(payload)
+
     def submit_payload(self, payload: dict, message_id=str(uuid4()), delay_seconds: int = None,
                        message_group_id: str = 'unset', message_deduplication_id: str = None):
         """ Submit a record ready to be batched up and sent to SQS """
         logger.debug(f"Payload submitted to SQS FIFO dispatcher: {payload}")
         constructed_payload = {
             'Id': message_id,
-            'MessageBody': str(payload),
+            'MessageBody': dumps(payload, cls=DecimalEncoder),
             'MessageGroupId': message_group_id
         }
         if message_deduplication_id:

@@ -1,5 +1,6 @@
 import logging
 from json import dumps
+from copy import deepcopy
 
 from boto3_batch_utils.Base import BaseDispatcher
 from boto3_batch_utils.utils import DecimalEncoder
@@ -39,7 +40,7 @@ class KinesisBatchDispatcher(BaseDispatcher):
         _payload['StreamName'] = self.stream_name
         super()._send_individual_payload(_payload)
 
-    def _process_failed_payloads(self, response: dict):
+    def _process_failed_payloads(self, response: dict, retry=3):
         """ Process the contents of a Put Records response when it contains failed records """
         i = 0
         failed_records = []
@@ -54,12 +55,14 @@ class KinesisBatchDispatcher(BaseDispatcher):
             logger.info(f"Sent messages to kinesis {successful_message_count}")
         if failed_records:
             logger.debug(f"Failed Records: {response['FailedRecordCount']}")
-            batch_of_problematic_records = [self.batch_in_progress[i] for i in failed_records]
+            batch_of_problematic_records = []
+            for r in failed_records:
+                batch_of_problematic_records.append(self.batch_in_progress[r])
             if len(failed_records) <= 2:
                 for payload in batch_of_problematic_records:
-                    self._send_individual_payload(payload)
+                    self._send_individual_payload(deepcopy(payload))
             else:
-                self._batch_send_payloads(batch_of_problematic_records)
+                self._batch_send_payloads(batch_of_problematic_records, retry=retry)
         self.batch_in_progress = None
 
     def _process_batch_send_response(self, response: dict):
@@ -81,7 +84,7 @@ class KinesisBatchDispatcher(BaseDispatcher):
     def _batch_send_payloads(self, batch: (list, dict) = None, **kwargs):
         """ Attempt to send a single batch of metrics to Kinesis """
         if 'retry' in kwargs:
-            self.batch_in_progress = batch['Records']
+            self.batch_in_progress = batch
             super()._batch_send_payloads(batch, kwargs['retry'])
         else:
             self.batch_in_progress = batch

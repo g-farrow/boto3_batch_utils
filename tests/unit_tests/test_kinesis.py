@@ -114,7 +114,7 @@ class ProcessFailedPayloads(TestCase):
             ]
         }
         kn._process_failed_payloads(test_response)
-        kn._batch_send_payloads.assert_called_once_with(test_batch)
+        kn._batch_send_payloads.assert_called_once_with(test_batch, retry=3)
 
     def test_some_records_are_rejected_some_are_successful(self):
         kn = KinesisBatchDispatcher("test_stream", partition_key_identifier="test_part_key", max_batch_size=1,
@@ -156,7 +156,7 @@ class ProcessFailedPayloads(TestCase):
             ]
         }
         kn._process_failed_payloads(test_response)
-        kn._batch_send_payloads.assert_called_once_with([{"Id": 6}, {"Id": 7}, {"Id": 8}, {"Id": 9}, {"Id": 10}])
+        kn._batch_send_payloads.assert_called_once_with([{"Id": 6}, {"Id": 7}, {"Id": 8}, {"Id": 9}, {"Id": 10}], retry=3)
 
     def test_two_records_are_rejected_the_rest_are_successful(self):
         kn = KinesisBatchDispatcher("test_stream", partition_key_identifier="test_part_key", max_batch_size=1,

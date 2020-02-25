@@ -1,6 +1,8 @@
 from unittest import TestCase
 from unittest.mock import patch, Mock, call
 
+from json import dumps
+
 from boto3_batch_utils.SQS import SQSBatchDispatcher, SQSFifoBatchDispatcher
 from boto3_batch_utils.Base import BaseDispatcher
 
@@ -49,7 +51,7 @@ class SubmitPayload(TestCase):
         test_delay = 3
         sqs.submit_payload(test_message, test_id, test_delay)
         mock_submit_payload.assert_called_once_with(
-            {'Id': test_id, 'MessageBody': str(test_message), 'DelaySeconds': test_delay}
+            {'Id': test_id, 'MessageBody': dumps(test_message), 'DelaySeconds': test_delay}
         )
 
     def test_standard_queue_without_delay_seconds(self, mock_submit_payload):
@@ -58,7 +60,7 @@ class SubmitPayload(TestCase):
         test_id = 123
         sqs.submit_payload(test_message, test_id)
         mock_submit_payload.assert_called_once_with(
-            {'Id': test_id, 'MessageBody': str(test_message)}
+            {'Id': test_id, 'MessageBody': dumps(test_message)}
         )
 
     def test_fifo_queue_content_based_deduplication(self, mock_submit_payload):
@@ -68,7 +70,7 @@ class SubmitPayload(TestCase):
         test_id = 123
         sqs.submit_payload(test_message, test_id)
         mock_submit_payload.assert_called_once_with(
-            {'Id': test_id, 'MessageBody': str(test_message), 'MessageGroupId': 'unset'}
+            {'Id': test_id, 'MessageBody': dumps(test_message), 'MessageGroupId': 'unset'}
         )
 
     def test_fifo_queue_message_based_deduplication(self, mock_submit_payload):
