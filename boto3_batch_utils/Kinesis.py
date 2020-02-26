@@ -42,14 +42,7 @@ class KinesisBatchDispatcher(BaseDispatcher):
 
     def _process_failed_payloads(self, response: dict, retry=3):
         """ Process the contents of a Put Records response when it contains failed records """
-        i = 0
-        failed_records = []
-        for r in response["Records"]:
-            logger.debug(f"Response: {r}")
-            if "ErrorCode" in r:
-                logger.warning(f"Payload failed to be sent to Kinesis. Message content: {r}")
-                failed_records.append(i)
-            i += 1
+        failed_records = self._get_index_of_failed_record(response)
         successful_message_count = len(self.batch_in_progress) - len(failed_records)
         if successful_message_count:
             logger.info(f"Sent messages to kinesis {successful_message_count}")
@@ -64,6 +57,20 @@ class KinesisBatchDispatcher(BaseDispatcher):
             else:
                 self._batch_send_payloads(batch_of_problematic_records, retry=retry)
         self.batch_in_progress = None
+
+    @staticmethod
+    def _get_index_of_failed_record(response: dict) -> list:
+        """ Parse the response object and identify which records failed and return an array of their index positions
+         within the batch """
+        i = 0
+        failed_records = []
+        for r in response["Records"]:
+            logger.debug(f"Response: {r}")
+            if "ErrorCode" in r:
+                logger.warning(f"Payload failed to be sent to Kinesis. Message content: {r}")
+                failed_records.append(i)
+            i += 1
+        return failed_records
 
     def _process_batch_send_response(self, response: dict):
         """
