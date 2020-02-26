@@ -55,7 +55,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install nose
-          pip install coverage
       - name: Test with nose
         run: |
-          nosetests tests/integration_tests --with-coverage --cover-min 85 --cover-package=boto3_batch_utils
+          nosetests tests/integration_tests
