@@ -18,7 +18,7 @@ _boto3_interface_type_mapper = {
 class BaseDispatcher:
 
     def __init__(self, aws_service: str, batch_dispatch_method: str, individual_dispatch_method: str = None,
-                 max_batch_size: int = 1, flush_payload_on_max_batch_size: bool = True) -> None:
+                 max_batch_size: int = 1) -> None:
         """
         :param aws_service: object - the boto3 client which shall be called to dispatch each payload
         :param batch_dispatch_method: method - the method to be called when attempting to dispatch multiple items in a
@@ -37,7 +37,6 @@ class BaseDispatcher:
         self.individual_dispatch_method = individual_dispatch_method
         self._individual_dispatch_method = None
         self.max_batch_size = max_batch_size
-        self.flush_payload_on_max_batch_size = flush_payload_on_max_batch_size
         self._aws_service_batch_max_payloads = None
         self._aws_service_message_max_bytes = None
         self._aws_service_batch_max_bytes = None
@@ -129,7 +128,7 @@ class BaseDispatcher:
         """ Decide whether or not to flush the payload (usually used following a payload submission) """
         logger.debug(f"Payload list now contains '{len(self._batch_payload)}' payloads, "
                      f"max batch size is '{self.max_batch_size}'")
-        if self.flush_payload_on_max_batch_size and len(self._batch_payload) >= self.max_batch_size:
+        if len(self._batch_payload) >= self.max_batch_size:
             logger.debug("Max batch size has been reached, flushing the payload list contents")
             self.flush_payloads()
         else:

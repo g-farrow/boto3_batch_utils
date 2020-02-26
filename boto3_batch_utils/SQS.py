@@ -11,13 +11,13 @@ logger = logging.getLogger('boto3-batch-utils')
 
 class SQSBaseBatchDispatcher(BaseDispatcher):
 
-    def __init__(self, queue_name, max_batch_size=10, flush_payload_on_max_batch_size=True):
+    def __init__(self, queue_name, max_batch_size=10):
         self.queue_name = queue_name
         self.queue_url = None
         self.batch_in_progress = None
         self.fifo_queue = False
         super().__init__('sqs', batch_dispatch_method='send_message_batch', individual_dispatch_method='send_message',
-                         max_batch_size=max_batch_size, flush_payload_on_max_batch_size=flush_payload_on_max_batch_size)
+                         max_batch_size=max_batch_size)
         self._aws_service_batch_max_payloads = constants.SQS_MAX_BATCH_PAYLOADS
         self._aws_service_message_max_bytes = constants.SQS_MESSAGE_MAX_BYTES
         self._aws_service_batch_max_bytes = constants.SQS_BATCH_MAX_BYTES
@@ -53,8 +53,8 @@ class SQSBatchDispatcher(SQSBaseBatchDispatcher):
     Manage the batch 'send' of SQS messages
     """
 
-    def __init__(self, queue_name, max_batch_size=10, flush_payload_on_max_batch_size=True):
-        super().__init__(queue_name, max_batch_size, flush_payload_on_max_batch_size)
+    def __init__(self, queue_name, max_batch_size=10):
+        super().__init__(queue_name, max_batch_size)
         self.fifo_queue = False
 
     def __str__(self):
@@ -94,9 +94,8 @@ class SQSBatchDispatcher(SQSBaseBatchDispatcher):
 
 class SQSFifoBatchDispatcher(SQSBaseBatchDispatcher):
 
-    def __init__(self, queue_name, max_batch_size=10, flush_payload_on_max_batch_size=True,
-                 content_based_deduplication=False):
-        super().__init__(queue_name, max_batch_size, flush_payload_on_max_batch_size)
+    def __init__(self, queue_name, max_batch_size=10, content_based_deduplication=False):
+        super().__init__(queue_name, max_batch_size)
         self.fifo_queue = True
         self.content_based_deduplication = content_based_deduplication
 

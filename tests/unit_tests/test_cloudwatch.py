@@ -21,7 +21,7 @@ class MockClient:
 class SubmitPayload(TestCase):
 
     def test(self, mock_submit_payload):
-        cw = CloudwatchBatchDispatcher('test_space', max_batch_size=1, flush_payload_on_max_batch_size=False)
+        cw = CloudwatchBatchDispatcher('test_space', max_batch_size=1)
         mock_metric_name = 'met'
         mock_timestamp = datetime.now()
         mock_dimensions = None
@@ -43,7 +43,7 @@ class SubmitPayload(TestCase):
 class FlushPayloads(TestCase):
 
     def test(self, mock_flush_payloads):
-        cw = CloudwatchBatchDispatcher('test_space', max_batch_size=1, flush_payload_on_max_batch_size=False)
+        cw = CloudwatchBatchDispatcher('test_space', max_batch_size=1)
         cw.flush_payloads()
         mock_flush_payloads.assert_called_once_with()
 
@@ -54,7 +54,7 @@ class FlushPayloads(TestCase):
 class BatchSendPayloads(TestCase):
 
     def test(self, mock_batch_send_payloads):
-        cw = CloudwatchBatchDispatcher('test_space', max_batch_size=1, flush_payload_on_max_batch_size=False)
+        cw = CloudwatchBatchDispatcher('test_space', max_batch_size=1)
         test_batch = {'test': True}
         cw._batch_send_payloads(test_batch)
         mock_batch_send_payloads.assert_called_once_with({'Namespace': 'test_space', 'MetricData': test_batch})

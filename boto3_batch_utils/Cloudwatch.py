@@ -18,10 +18,9 @@ class CloudwatchBatchDispatcher(BaseDispatcher):
     Manage the batch 'put' of Cloudwatch metrics
     """
 
-    def __init__(self, namespace: str, max_batch_size: int = 20, flush_payload_on_max_batch_size: bool = True):
+    def __init__(self, namespace: str, max_batch_size: int = 20):
         self.namespace = namespace
-        super().__init__('cloudwatch', batch_dispatch_method='put_metric_data', max_batch_size=max_batch_size,
-                         flush_payload_on_max_batch_size=flush_payload_on_max_batch_size)
+        super().__init__('cloudwatch', batch_dispatch_method='put_metric_data', max_batch_size=max_batch_size)
         self._aws_service_batch_max_payloads = constants.CLOUDWATCH_BATCH_MAX_PAYLOADS
         self._aws_service_message_max_bytes = constants.CLOUDWATCH_MESSAGE_MAX_BYTES
         self._aws_service_batch_max_bytes = constants.CLOUDWATCH_BATCH_MAX_BYTES

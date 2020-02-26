@@ -27,13 +27,13 @@ class MockClient:
 class TestInit(TestCase):
 
     def test_standard_queue_type_initialisation(self):
-        sqs = SQSBatchDispatcher('test_queue', max_batch_size=1, flush_payload_on_max_batch_size=False)
+        sqs = SQSBatchDispatcher('test_queue', max_batch_size=1)
         self.assertIsNone(sqs.queue_url)
         self.assertIsNone(sqs.batch_in_progress)
         self.assertFalse(sqs.fifo_queue)
 
     def test_fifo_queue_type_initialisation(self):
-        sqs = SQSFifoBatchDispatcher('test_queue', max_batch_size=1, flush_payload_on_max_batch_size=False)
+        sqs = SQSFifoBatchDispatcher('test_queue', max_batch_size=1)
         self.assertIsNone(sqs.queue_url)
         self.assertIsNone(sqs.batch_in_progress)
         self.assertTrue(sqs.fifo_queue)
@@ -45,7 +45,7 @@ class TestInit(TestCase):
 class SubmitPayload(TestCase):
 
     def test_standard_queue_with_delay_seconds(self, mock_submit_payload):
-        sqs = SQSBatchDispatcher('test_queue', max_batch_size=1, flush_payload_on_max_batch_size=False)
+        sqs = SQSBatchDispatcher('test_queue', max_batch_size=1)
         test_message = {'something': 'else'}
         test_id = 123
         test_delay = 3
@@ -55,7 +55,7 @@ class SubmitPayload(TestCase):
         )
 
     def test_standard_queue_without_delay_seconds(self, mock_submit_payload):
-        sqs = SQSBatchDispatcher('test_queue', max_batch_size=1, flush_payload_on_max_batch_size=False)
+        sqs = SQSBatchDispatcher('test_queue', max_batch_size=1)
         test_message = {'something': 'else'}
         test_id = 123
         sqs.submit_payload(test_message, test_id)
@@ -64,7 +64,7 @@ class SubmitPayload(TestCase):
         )
 
     def test_fifo_queue_content_based_deduplication(self, mock_submit_payload):
-        sqs = SQSFifoBatchDispatcher('test_queue', max_batch_size=1, flush_payload_on_max_batch_size=False,
+        sqs = SQSFifoBatchDispatcher('test_queue', max_batch_size=1,
                                      content_based_deduplication=True)
         test_message = {'something': 'else'}
         test_id = 123
@@ -74,7 +74,7 @@ class SubmitPayload(TestCase):
         )
 
     def test_fifo_queue_message_based_deduplication(self, mock_submit_payload):
-        sqs = SQSFifoBatchDispatcher('test_queue', max_batch_size=1, flush_payload_on_max_batch_size=False)
+        sqs = SQSFifoBatchDispatcher('test_queue', max_batch_size=1)
         test_message = {'something': 'else'}
         test_id = 123
         with self.assertRaises(ValueError) as context:
@@ -83,7 +83,7 @@ class SubmitPayload(TestCase):
         mock_submit_payload.assert_not_called()
 
     def test_fifo_queue_message_based_deduplication_ignore_duplicate(self, mock_submit_payload):
-        fifo = SQSFifoBatchDispatcher('test_queue', max_batch_size=2, flush_payload_on_max_batch_size=False)
+        fifo = SQSFifoBatchDispatcher('test_queue', max_batch_size=2)
         test_message = {'something': 'else'}
         test_id = 123
         fifo._batch_payload = [{
@@ -102,7 +102,7 @@ class SubmitPayload(TestCase):
 class FlushPayloads(TestCase):
 
     def test(self, mock_flush_payloads):
-        sqs = SQSBatchDispatcher('test_queue', max_batch_size=1, flush_payload_on_max_batch_size=False)
+        sqs = SQSBatchDispatcher('test_queue', max_batch_size=1)
         sqs.flush_payloads()
         mock_flush_payloads.assert_called_once_with()
 
@@ -113,7 +113,7 @@ class FlushPayloads(TestCase):
 class BatchSendPayloads(TestCase):
 
     def test(self, mock_batch_send_payloads):
-        sqs = SQSBatchDispatcher('test_queue', max_batch_size=1, flush_payload_on_max_batch_size=False)
+        sqs = SQSBatchDispatcher('test_queue', max_batch_size=1)
         sqs._aws_service = Mock()
         sqs._aws_service.get_queue_url = Mock(return_value={'QueueUrl': 'url:://queue'})
         test_batch = "a_test"
@@ -128,7 +128,7 @@ class BatchSendPayloads(TestCase):
 class ProcessFailedPayloads(TestCase):
 
     def test_all_records_failed_in_first_batch_and_are_re_submitted(self):
-        sqs = SQSBatchDispatcher('test_queue', max_batch_size=1, flush_payload_on_max_batch_size=False)
+        sqs = SQSBatchDispatcher('test_queue', max_batch_size=1)
         sqs._send_individual_payload = Mock()
         test_batch = [
             {'Id': '1', 'MessageBody': {'something_to_send': 'etc'}, 'DelaySeconds': 7},
@@ -173,7 +173,7 @@ class ProcessFailedPayloads(TestCase):
         ])
 
     def test_some_records_are_rejected_some_are_successful(self):
-        sqs = SQSBatchDispatcher('test_queue', max_batch_size=1, flush_payload_on_max_batch_size=False)
+        sqs = SQSBatchDispatcher('test_queue', max_batch_size=1)
         sqs._send_individual_payload = Mock()
         test_batch = [
             {'Id': '1', 'MessageBody': {'something_to_send': 'etc'}, 'DelaySeconds': 7},
@@ -220,7 +220,7 @@ class ProcessFailedPayloads(TestCase):
 class SendIndividualPayload(TestCase):
 
     def test_standard_queue_with_delay_seconds(self, mock_send_individual_payload):
-        sqs = SQSBatchDispatcher('test_queue', max_batch_size=1, flush_payload_on_max_batch_size=False)
+        sqs = SQSBatchDispatcher('test_queue', max_batch_size=1)
         sqs.queue_url = 'test_url'
         test_payload = {
             'Id': 12345,
@@ -233,7 +233,7 @@ class SendIndividualPayload(TestCase):
         mock_send_individual_payload.assert_called_once_with(expected_converted_payload, retry=4)
 
     def test_standard_queue_without_delay_seconds(self, mock_send_individual_payload):
-        sqs = SQSBatchDispatcher('test_queue', max_batch_size=1, flush_payload_on_max_batch_size=False)
+        sqs = SQSBatchDispatcher('test_queue', max_batch_size=1)
         sqs.queue_url = 'test_url'
         test_payload = {
             'Id': 12345,
@@ -244,7 +244,7 @@ class SendIndividualPayload(TestCase):
         mock_send_individual_payload.assert_called_once_with(expected_converted_payload, retry=4)
 
     def test_fifo_queue(self, mock_send_individual_payload):
-        sqs = SQSFifoBatchDispatcher('test_queue', max_batch_size=1, flush_payload_on_max_batch_size=False)
+        sqs = SQSFifoBatchDispatcher('test_queue', max_batch_size=1)
         sqs.queue_url = 'test_url'
         test_payload = {
             'Id': 12345,

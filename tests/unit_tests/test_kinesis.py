@@ -27,8 +27,7 @@ class MockClient:
 class SubmitPayload(TestCase):
 
     def test(self, mock_submit_payload, mock_json_dumps, mock_decimal_encoder):
-        kn = KinesisBatchDispatcher("test_stream", partition_key_identifier="test_part_key", max_batch_size=1,
-                                    flush_payload_on_max_batch_size=False)
+        kn = KinesisBatchDispatcher("test_stream", partition_key_identifier="test_part_key", max_batch_size=1)
         test_payload = {'test_part_key': 123}
         mock_json_dumps.return_value = "serialized_test_data"
         constructed_payload = {
@@ -46,8 +45,7 @@ class SubmitPayload(TestCase):
 class FlushPayloads(TestCase):
 
     def test(self, mock_flush_payloads):
-        kn = KinesisBatchDispatcher("test_stream", partition_key_identifier="test_part_key", max_batch_size=1,
-                                    flush_payload_on_max_batch_size=False)
+        kn = KinesisBatchDispatcher("test_stream", partition_key_identifier="test_part_key", max_batch_size=1)
         kn.flush_payloads()
         mock_flush_payloads.assert_called_once_with()
 
@@ -58,8 +56,7 @@ class FlushPayloads(TestCase):
 class BatchSendPayloads(TestCase):
 
     def test(self, mock_base_batch_send_payloads):
-        kn = KinesisBatchDispatcher("test_stream", partition_key_identifier="test_part_key", max_batch_size=1,
-                                    flush_payload_on_max_batch_size=False)
+        kn = KinesisBatchDispatcher("test_stream", partition_key_identifier="test_part_key", max_batch_size=1)
         test_batch = "a_test"
         kn._batch_send_payloads(test_batch)
         mock_base_batch_send_payloads.assert_called_once_with({'StreamName': 'test_stream', 'Records': test_batch})
@@ -70,8 +67,7 @@ class BatchSendPayloads(TestCase):
 class ProcessFailedPayloads(TestCase):
 
     def test_all_records_failed_in_first_batch_and_are_re_submitted(self):
-        kn = KinesisBatchDispatcher("test_stream", partition_key_identifier="test_part_key", max_batch_size=1,
-                                    flush_payload_on_max_batch_size=False)
+        kn = KinesisBatchDispatcher("test_stream", partition_key_identifier="test_part_key", max_batch_size=1)
         kn._batch_send_payloads = Mock()
         test_batch = [
             {"Id": 1}, {"Id": 2}, {"Id": 3}, {"Id": 4}, {"Id": 5},
@@ -117,8 +113,7 @@ class ProcessFailedPayloads(TestCase):
         kn._batch_send_payloads.assert_called_once_with(test_batch, retry=3)
 
     def test_some_records_are_rejected_some_are_successful(self):
-        kn = KinesisBatchDispatcher("test_stream", partition_key_identifier="test_part_key", max_batch_size=1,
-                                    flush_payload_on_max_batch_size=False)
+        kn = KinesisBatchDispatcher("test_stream", partition_key_identifier="test_part_key", max_batch_size=1)
         kn._batch_send_payloads = Mock()
         test_batch = [
             {"Id": 1}, {"Id": 2}, {"Id": 3}, {"Id": 4}, {"Id": 5},
@@ -159,8 +154,7 @@ class ProcessFailedPayloads(TestCase):
         kn._batch_send_payloads.assert_called_once_with([{"Id": 6}, {"Id": 7}, {"Id": 8}, {"Id": 9}, {"Id": 10}], retry=3)
 
     def test_two_records_are_rejected_the_rest_are_successful(self):
-        kn = KinesisBatchDispatcher("test_stream", partition_key_identifier="test_part_key", max_batch_size=1,
-                                    flush_payload_on_max_batch_size=False)
+        kn = KinesisBatchDispatcher("test_stream", partition_key_identifier="test_part_key", max_batch_size=1)
         kn._individual_dispatch_method = Mock()
         test_batch = [
             {'Data': dumps({"Id": 1}), 'PartitionKey': 'Id'},
@@ -205,8 +199,7 @@ class ProcessFailedPayloads(TestCase):
 class ProcessBatchSendResponse(TestCase):
 
     def test_no_records_attribute_in_response(self):
-        kn = KinesisBatchDispatcher("test_stream", partition_key_identifier="test_part_key", max_batch_size=1,
-                                    flush_payload_on_max_batch_size=False)
+        kn = KinesisBatchDispatcher("test_stream", partition_key_identifier="test_part_key", max_batch_size=1)
         kn._process_failed_payloads = Mock()
         test_batch = [
             {"Id": 1}
@@ -221,8 +214,7 @@ class ProcessBatchSendResponse(TestCase):
         kn._process_failed_payloads.assert_not_called()
 
     def test_no_failed_records_in_response(self):
-        kn = KinesisBatchDispatcher("test_stream", partition_key_identifier="test_part_key", max_batch_size=1,
-                                    flush_payload_on_max_batch_size=False)
+        kn = KinesisBatchDispatcher("test_stream", partition_key_identifier="test_part_key", max_batch_size=1)
         kn._process_failed_payloads = Mock()
         test_batch = [
             {"Id": 1}, {"Id": 2}, {"Id": 3}, {"Id": 4}, {"Id": 5},
@@ -238,8 +230,7 @@ class ProcessBatchSendResponse(TestCase):
         kn._process_failed_payloads.assert_not_called()
 
     def test_all_records_failed(self):
-        kn = KinesisBatchDispatcher("test_stream", partition_key_identifier="test_part_key", max_batch_size=1,
-                                    flush_payload_on_max_batch_size=False)
+        kn = KinesisBatchDispatcher("test_stream", partition_key_identifier="test_part_key", max_batch_size=1)
         kn._process_failed_payloads = Mock()
         test_batch = [
             {"Id": 1}, {"Id": 2}, {"Id": 3}, {"Id": 4}, {"Id": 5},
@@ -254,8 +245,7 @@ class ProcessBatchSendResponse(TestCase):
         kn._process_failed_payloads.assert_called_once_with(test_response)
 
     def test_some_records_failed(self):
-        kn = KinesisBatchDispatcher("test_stream", partition_key_identifier="test_part_key", max_batch_size=1,
-                                    flush_payload_on_max_batch_size=False)
+        kn = KinesisBatchDispatcher("test_stream", partition_key_identifier="test_part_key", max_batch_size=1)
         kn._process_failed_payloads = Mock()
         test_batch = [
             {"Id": 1}, {"Id": 2}, {"Id": 3}, {"Id": 4}, {"Id": 5},
@@ -277,8 +267,7 @@ class ProcessBatchSendResponse(TestCase):
 class SendIndividualPayload(TestCase):
 
     def test(self, mock_send_individual_payload):
-        kn = KinesisBatchDispatcher("test_stream", partition_key_identifier="test_part_key", max_batch_size=1,
-                                    flush_payload_on_max_batch_size=False)
+        kn = KinesisBatchDispatcher("test_stream", partition_key_identifier="test_part_key", max_batch_size=1)
         test_payload = {
             'Data': "{'something': 'else'}",
             'PartitionKey': 'Id'

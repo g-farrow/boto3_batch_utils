@@ -15,15 +15,13 @@ class DynamoBatchDispatcher(BaseDispatcher):
     """
 
     def __init__(self, dynamo_table_name: str, partition_key: str, sort_key: str = None,
-                 partition_key_data_type: type = str, max_batch_size: int = 25,
-                 flush_payload_on_max_batch_size: bool = True):
+                 partition_key_data_type: type = str, max_batch_size: int = 25):
         self.dynamo_table_name = dynamo_table_name
         self.partition_key = partition_key
         self.sort_key = sort_key
         self.partition_key_data_type = partition_key_data_type
         self._dynamo_table = None
-        super().__init__('dynamodb', batch_dispatch_method='batch_write_item', max_batch_size=max_batch_size,
-                         flush_payload_on_max_batch_size=flush_payload_on_max_batch_size)
+        super().__init__('dynamodb', batch_dispatch_method='batch_write_item', max_batch_size=max_batch_size)
         self._aws_service_batch_max_payloads = constants.DYNAMODB_BATCH_MAX_PAYLOADS
         self._aws_service_message_max_bytes = constants.DYNAMODB_MESSAGE_MAX_BYTES
         self._aws_service_batch_max_bytes = constants.DYNAMODB_BATCH_MAX_BYTES
