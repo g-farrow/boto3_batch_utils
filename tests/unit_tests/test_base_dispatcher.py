@@ -36,10 +36,12 @@ class InitialiseBatchUtilsClient(TestCase):
         self.assertEqual('send_one', base.individual_dispatch_method)
         self.assertIsNone(base._individual_dispatch_method)
         self.assertEqual(1, base.max_batch_size)
-        self.assertIsNone(base._batch_payload)
         self.assertIsNone(base._aws_service_batch_max_payloads)
         self.assertIsNone(base._aws_service_message_max_bytes)
         self.assertIsNone(base._aws_service_batch_max_bytes)
+        self.assertEqual({}, base._batch_payload_wrapper)
+        self.assertIsNone(base._batch_payload)
+        self.assertEqual(0, base._batch_payload_wrapper_byte_size)
 
 
 @patch('boto3_batch_utils.Base.boto3.client', MockClient)
