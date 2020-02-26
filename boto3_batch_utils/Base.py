@@ -42,9 +42,9 @@ class BaseDispatcher:
         self._aws_service_batch_max_bytes = None
         self._batch_payload_wrapper = {}
         self._batch_payload = None
-        self.unprocessed_items = []
         self._batch_payload_wrapper_byte_size = get_byte_size_of_dict_or_list(self._batch_payload_wrapper) - 2
         #  Remove 2 bytes for the `[]` which exists in the wrapper and the batch itself, therefore duplicated
+        self.unprocessed_items = []
         logger.debug(f"Batch dispatch initialised: {self.aws_service_name}")
 
     def _validate_initialisation(self):
