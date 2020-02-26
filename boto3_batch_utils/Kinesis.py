@@ -1,6 +1,7 @@
 import logging
 from json import dumps
 from copy import deepcopy
+from uuid import uuid4
 
 from boto3_batch_utils.Base import BaseDispatcher
 from boto3_batch_utils.utils import DecimalEncoder
@@ -17,7 +18,7 @@ class KinesisBatchDispatcher(BaseDispatcher):
     Manage the batch 'put' of Kinesis records
     """
 
-    def __init__(self, stream_name: str, partition_key_identifier: str = 'Id', max_batch_size: int = 250,
+    def __init__(self, stream_name: str, partition_key_identifier: str = None, max_batch_size: int = 250,
                  flush_payload_on_max_batch_size: bool = True):
         self.stream_name = stream_name
         self.partition_key_identifier = partition_key_identifier
@@ -110,6 +111,6 @@ class KinesisBatchDispatcher(BaseDispatcher):
         logger.debug(f"Payload submitted to {self.aws_service_name} dispatcher: {payload}")
         constructed_payload = {
             'Data': dumps(payload, cls=DecimalEncoder),
-            'PartitionKey': f'{payload[self.partition_key_identifier]}'
+            'PartitionKey': f'{payload[self.partition_key_identifier] if self.partition_key_identifier else uuid4()}'
         }
         super().submit_payload(constructed_payload)
