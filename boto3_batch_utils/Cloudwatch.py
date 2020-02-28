@@ -31,29 +31,6 @@ class CloudwatchBatchDispatcher(BaseDispatcher):
     def __str__(self):
         return f"CloudwatchBatchDispatcher::{self.namespace}"
 
-    def _send_individual_payload(self, payload: dict, retry: int = 4):
-        """ Send an individual metric to Cloudwatch """
-        pass
-
-    def _process_batch_send_response(self, response: dict):
-        """ Process the response data from a batch put request (N/A) """
-        pass
-
-    def _batch_send_payloads(self, batch: dict = None, **kwargs):
-        """ Attempt to send a single batch of metrics to Cloudwatch """
-        if 'retry' in kwargs:
-            super()._batch_send_payloads(batch, kwargs['retry'])
-        else:
-            super()._batch_send_payloads({'Namespace': self.namespace, 'MetricData': batch})
-
-    def flush_payloads(self):
-        """ Push all metrics in the payload list to Cloudwatch """
-        super().flush_payloads()
-
-    def _append_payload_to_current_batch(self, payload):
-        """ Append the payload to the service specific batch structure """
-        self._batch_payload.append(payload)
-
     def submit_payload(self, metric_name: str, value: (str, int), timestamp: datetime = None,
                        dimensions: (dict, list) = None, unit: str = 'Count'):
         """ Submit a metric ready to be batched up and sent to Cloudwatch """
@@ -67,3 +44,10 @@ class CloudwatchBatchDispatcher(BaseDispatcher):
         if dimensions:
             payload['Dimensions'] = dimensions if isinstance(dimensions, list) else [dimensions]
         super().submit_payload(payload)
+
+    def _batch_send_payloads(self, batch: dict = None, **kwargs):
+        """ Attempt to send a single batch of metrics to Cloudwatch """
+        if 'retry' in kwargs:
+            super()._batch_send_payloads(batch, kwargs['retry'])
+        else:
+            super()._batch_send_payloads({'Namespace': self.namespace, 'MetricData': batch})

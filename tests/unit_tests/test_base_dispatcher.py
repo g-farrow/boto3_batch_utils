@@ -203,6 +203,22 @@ class FlushPayloads(TestCase):
         base._batch_send_payloads.assert_has_calls([call([1, 2, 3]), call([4])])
         self.assertEqual([], base._batch_payload)
 
+    def test_unprocessed_items_are_returned(self, mock_chunks):
+        test_unprocessed_items = ['abc1', 'cde2', 'efg3']
+        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', max_batch_size=3)
+        base.unprocessed_items = test_unprocessed_items
+        base._batch_payload = [1, 2, 3, 4]
+        base._initialise_aws_client = Mock()
+        base._batch_send_payloads = Mock()
+        mock_chunks.return_value = [[1, 2, 3], [4]]
+
+        response = base.flush_payloads()
+
+        base._initialise_aws_client.assert_called_once()
+        base._batch_send_payloads.assert_has_calls([call([1, 2, 3]), call([4])])
+        self.assertEqual([], base._batch_payload)
+        self.assertEqual(test_unprocessed_items, response)
+
 
 @patch('boto3_batch_utils.Base._boto3_interface_type_mapper', mock_boto3_interface_type_mapper)
 @patch('boto3_batch_utils.Base.boto3.client', MockClient)
@@ -245,21 +261,24 @@ class BatchSendPayloads(TestCase):
         base._batch_dispatch_method.assert_called_once_with(**test_batch)
         base._process_batch_send_response.assert_called_once_with("batch_response")
 
-    def test_list_client_error(self):
+    def test_list_batch_send_failures_sent_to_unprocessed_items(self):
         base = BaseDispatcher('test_subject', 'send_lots', 'send_one', max_batch_size=3)
-        test_batch = []
+        test_batch = ["abc", "cde"]
         base._batch_dispatch_method = Mock(side_effect=ClientError({"Error": {"message": "Something went wrong", "code": 0}}, "A Test"))
         base._process_batch_send_response = Mock()
         base._handle_client_error = Mock()
-        with self.assertRaises(ClientError):
-            base._batch_send_payloads(test_batch)
-            base._batch_dispatch_method.assert_called_once_with(test_batch)
-            base._handle_client_error.assert_called_once_with("An error occurred (Unknown) when calling the A Test operation: Unknown", test_batch)
-            base._process_batch_send_response.assert_not_called()
+        base._unpack_failed_batch_to_unprocessed_items = Mock()
 
-    def test_dict_client_error(self):
+        base._batch_send_payloads(test_batch)
+
+        base._batch_dispatch_method.assert_has_calls([call(test_batch), call(test_batch), call(test_batch),
+                                                      call(test_batch), call(test_batch)])
+        base._process_batch_send_response.assert_not_called()
+        base._unpack_failed_batch_to_unprocessed_items.assert_called_once_with(test_batch)
+
+    def test_dict_batch_send_failures_sent_to_unporcessed_items(self):
         base = BaseDispatcher('test_subject', 'send_lots', 'send_one', max_batch_size=3)
-        test_batch = {}
+        test_batch = {'something': 'batchy'}
         base._batch_dispatch_method = Mock(
             side_effect=[
                 ClientError({"Error": {"message": "Something went wrong", "code": 0}}, "A Test"),
@@ -272,11 +291,14 @@ class BatchSendPayloads(TestCase):
         )
         base._process_batch_send_response = Mock()
         base._handle_client_error = Mock()
-        with self.assertRaises(ClientError):
-            base._batch_send_payloads(test_batch)
-            base._batch_dispatch_method.assert_called_once_with(**test_batch)
-            base._handle_client_error.assert_called_once_with("An error occurred (Unknown) when calling the A Test operation: Unknown", test_batch)
-            base._process_batch_send_response.assert_not_called()
+        base._unpack_failed_batch_to_unprocessed_items = Mock()
+
+        base._batch_send_payloads(test_batch)
+
+        base._batch_dispatch_method.assert_has_calls([call(**test_batch), call(**test_batch), call(**test_batch),
+                                                      call(**test_batch), call(**test_batch)])
+        base._process_batch_send_response.assert_not_called()
+        base._unpack_failed_batch_to_unprocessed_items.assert_called_once_with(test_batch)
 
 
 @patch('boto3_batch_utils.Base._boto3_interface_type_mapper', mock_boto3_interface_type_mapper)
@@ -305,14 +327,14 @@ class SendIndividualPayload(TestCase):
             call(test_payload)
         ])
 
-    def test_non_dict_raises_client_error_sent_after_5_failures(self):
+    def test_non_dict_added_to_unprocessed_items_after_5_failures(self):
         base = BaseDispatcher('test_subject', 'send_lots', 'send_one', max_batch_size=3)
         client_error = ClientError({"Error": {"message": "Something went wrong", "code": 0}}, "A Test")
         base._individual_dispatch_method = Mock(side_effect=[client_error, client_error, client_error, client_error,
                                                              client_error])
+
         test_payload = "abc"
-        with self.assertRaises(ClientError):
-            base._send_individual_payload(test_payload)
+        base._send_individual_payload(test_payload)
         base._individual_dispatch_method.assert_has_calls([
             call(test_payload),
             call(test_payload),
@@ -320,6 +342,7 @@ class SendIndividualPayload(TestCase):
             call(test_payload),
             call(test_payload)
         ])
+        self.assertEqual([test_payload], base.unprocessed_items)
 
 
     def test_successful_send_dict(self):
@@ -343,14 +366,13 @@ class SendIndividualPayload(TestCase):
             call(**test_payload)
         ])
 
-    def test_dict_raises_client_error_after_5_failures(self):
+    def test_dict_added_to_unprocessed_items_after_5_failures(self):
         base = BaseDispatcher('test_subject', 'send_lots', 'send_one', max_batch_size=3)
         client_error = ClientError({"Error": {"message": "Something went wrong", "code": 0}}, "A Test")
         base._individual_dispatch_method = Mock(side_effect=[client_error, client_error, client_error, client_error,
                                                              client_error])
         test_payload = {"abc": 123}
-        with self.assertRaises(ClientError):
-            base._send_individual_payload(test_payload)
+        base._send_individual_payload(test_payload)
         base._individual_dispatch_method.assert_has_calls([
             call(**test_payload),
             call(**test_payload),
@@ -358,6 +380,7 @@ class SendIndividualPayload(TestCase):
             call(**test_payload),
             call(**test_payload)
         ])
+        self.assertEqual([test_payload], base.unprocessed_items)
 
 
 @patch('boto3_batch_utils.Base.boto3.client', MockClient)
