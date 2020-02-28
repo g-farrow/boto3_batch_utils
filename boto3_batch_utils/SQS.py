@@ -25,6 +25,13 @@ class SQSBaseBatchDispatcher(BaseDispatcher):
         self._batch_payload = []
         self._validate_initialisation()
 
+    def _batch_send_payloads(self, batch: (dict, list) = None, **nested_batch):
+        """ Attempt to send a single batch of records to SQS """
+        if not self.queue_url:
+            self.queue_url = self._aws_service.get_queue_url(QueueName=self.queue_name)['QueueUrl']
+        self.batch_in_progress = batch
+        super()._batch_send_payloads({'QueueUrl': self.queue_url, 'Entries': batch})
+
     def _process_batch_send_response(self, response: dict):
         """ Process the response data from a batch put request """
         logger.debug(f"Processing response: {response}")
@@ -40,13 +47,6 @@ class SQSBaseBatchDispatcher(BaseDispatcher):
                         self._send_individual_payload(payload)
         self.batch_in_progress = None
 
-    def _batch_send_payloads(self, batch: (dict, list) = None, **nested_batch):
-        """ Attempt to send a single batch of records to SQS """
-        if not self.queue_url:
-            self.queue_url = self._aws_service.get_queue_url(QueueName=self.queue_name)['QueueUrl']
-        self.batch_in_progress = batch
-        super()._batch_send_payloads({'QueueUrl': self.queue_url, 'Entries': batch})
-
 
 class SQSBatchDispatcher(SQSBaseBatchDispatcher):
     """
@@ -59,21 +59,6 @@ class SQSBatchDispatcher(SQSBaseBatchDispatcher):
 
     def __str__(self):
         return f"SQSBatchDispatcher::{self.queue_name}"
-
-    def _send_individual_payload(self, payload: dict, retry: int = 5):
-        """ Send an individual record to SQS """
-        kwargs = {'QueueUrl': self.queue_url, 'MessageBody': payload['MessageBody']}
-        if payload.get('DelaySeconds'):
-            kwargs['DelaySeconds'] = payload['DelaySeconds']
-        super()._send_individual_payload(kwargs, retry=4)
-
-    def flush_payloads(self):
-        """ Push all records in the payload list to SQS """
-        super().flush_payloads()
-
-    def _append_payload_to_current_batch(self, payload):
-        """ Append the payload to the service specific batch structure """
-        self._batch_payload.append(payload)
 
     def submit_payload(self, payload: dict, message_id="", delay_seconds=None, message_group_id: str = 'unset'):
         """ Submit a record ready to be batched up and sent to SQS """
@@ -91,6 +76,13 @@ class SQSBatchDispatcher(SQSBaseBatchDispatcher):
         else:
             logger.debug(f"Message with message_id ({message_id}) already exists in the batch, skipping...")
 
+    def _send_individual_payload(self, payload: dict, retry: int = 5):
+        """ Send an individual record to SQS """
+        kwargs = {'QueueUrl': self.queue_url, 'MessageBody': payload['MessageBody']}
+        if payload.get('DelaySeconds'):
+            kwargs['DelaySeconds'] = payload['DelaySeconds']
+        super()._send_individual_payload(kwargs, retry=4)
+
 
 class SQSFifoBatchDispatcher(SQSBaseBatchDispatcher):
 
@@ -101,18 +93,6 @@ class SQSFifoBatchDispatcher(SQSBaseBatchDispatcher):
 
     def __str__(self):
         return f"SQSFifoBatchDispatcher::{self.queue_name}"
-
-    def _send_individual_payload(self, payload: dict, retry: int = 5):
-        """ Send an individual record to SQS """
-        kwargs = {
-            'QueueUrl': self.queue_url,
-            **payload
-        }
-        super()._send_individual_payload(kwargs, retry=4)
-
-    def _append_payload_to_current_batch(self, payload):
-        """ Append the payload to the service specific batch structure """
-        self._batch_payload.append(payload)
 
     def submit_payload(self, payload: dict, message_id=str(uuid4()), delay_seconds: int = None,
                        message_group_id: str = 'unset', message_deduplication_id: str = None):
@@ -134,3 +114,11 @@ class SQSFifoBatchDispatcher(SQSBaseBatchDispatcher):
                              f" therefore `message_deduplication_id` MUST be set")
         logger.debug(f"SQS FIFO payload constructed: {constructed_payload}")
         super().submit_payload(constructed_payload)
+
+    def _send_individual_payload(self, payload: dict, retry: int = 5):
+        """ Send an individual record to SQS """
+        kwargs = {
+            'QueueUrl': self.queue_url,
+            **payload
+        }
+        super()._send_individual_payload(kwargs, retry=4)
