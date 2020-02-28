@@ -123,6 +123,11 @@ class DynamoBatchDispatcher(BaseDispatcher):
                 else:
                     raise TypeError("Individual write type is not supported")
 
+    def _unpack_failed_batch_to_unprocessed_items(self, batch: dict):
+        """ Extract all records from the attempted batch payload """
+        extracted_payloads = [pl['PutRequest']['Item'] for pl in batch['RequestItems'][self.dynamo_table_name]]
+        self.unprocessed_items = self.unprocessed_items + extracted_payloads
+
     def _send_individual_payload(self, payload: dict, retry: int = 4):
         """
         Write an individual record to Dynamo
@@ -138,4 +143,4 @@ class DynamoBatchDispatcher(BaseDispatcher):
             else:
                 logger.error(f"Individual send attempt has failed, no more retries remaining: {str(e)}")
                 logger.debug(f"Failed payload: {payload}")
-                raise e
+                self.unprocessed_items.append(payload)

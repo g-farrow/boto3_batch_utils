@@ -277,9 +277,9 @@ class SendIndividualPayload(TestCase):
         dy._dynamo_table = Mock()
         dy._dynamo_table.put_item.side_effect = [ClientError({'Error': {'Code': 500, 'Message': 'broken'}}, "Dynamo")]
         test_payload = {"processed_payload": False}
-        with self.assertRaises(ClientError) as context:
-            dy._send_individual_payload(test_payload, retry=0)
+        dy._send_individual_payload(test_payload, retry=0)
         dy._dynamo_table.put_item.assert_called_once_with(**{'Item': test_payload})
+        self.assertEqual([test_payload], dy.unprocessed_items)
 
 
 @patch('boto3_batch_utils.Base.boto3.client', MockClient)
