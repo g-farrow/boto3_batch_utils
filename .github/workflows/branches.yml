@@ -5,6 +5,7 @@ on:
       - '*'         # matches every branch
       - '*/*'       # matches every branch containing a single '/'
       - '!master'   # excludes master
+      - '!docs'     # excludes docs branch
 
 jobs:
   linting:
