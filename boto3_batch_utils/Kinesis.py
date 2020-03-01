@@ -1,5 +1,5 @@
 import logging
-from json import dumps
+from json import dumps, loads
 from copy import deepcopy
 from uuid import uuid4
 
@@ -9,8 +9,6 @@ from boto3_batch_utils import constants
 
 
 logger = logging.getLogger('boto3-batch-utils')
-
-kinesis_max_batch_size = 250
 
 
 class KinesisBatchDispatcher(BaseDispatcher):
@@ -34,18 +32,44 @@ class KinesisBatchDispatcher(BaseDispatcher):
     def __str__(self):
         return f"KinesisBatchDispatcher::{self.stream_name}"
 
-    def _send_individual_payload(self, payload: dict, retry: int = 5):
-        """ Send an individual payload to Kinesis """
-        _payload = payload
-        _payload['StreamName'] = self.stream_name
-        super()._send_individual_payload(_payload)
+    def submit_payload(self, payload: dict):
+        """ Submit a metric ready to be batched up and sent to Kinesis """
+        logger.debug(f"Payload submitted to {self.aws_service_name} dispatcher: {payload}")
+        constructed_payload = {
+            'Data': dumps(payload, cls=DecimalEncoder),
+            'PartitionKey': f'{payload[self.partition_key_identifier] if self.partition_key_identifier else uuid4()}'
+        }
+        super().submit_payload(constructed_payload)
+
+    def _batch_send_payloads(self, batch: (list, dict) = None, **kwargs):
+        """ Attempt to send a single batch of metrics to Kinesis """
+        self.batch_in_progress = batch
+        if isinstance(batch, list):
+            batch = {'StreamName': self.stream_name, 'Records': batch}
+        if 'retry' in kwargs:
+            super()._batch_send_payloads(batch, kwargs['retry'])
+        else:
+            super()._batch_send_payloads(batch)
+
+    def _process_batch_send_response(self, response: dict):
+        """
+        Method to send a set of messages on to the Kinesis stream
+        :param response: Response from the AWS service
+        """
+        logger.debug(f"Processing response: {response}")
+        if "Records" in response:
+            if response["FailedRecordCount"] == 0:
+                logger.info(f"{len(self.batch_in_progress)} records successfully batch "
+                            f"sent to Kinesis::{self.stream_name}")
+                self.batch_in_progress = None
+                return
+            else:
+                logger.info(f"Failed payloads detected ({response['FailedRecordCount']}), processing errors...")
+                self._process_failed_payloads(response)
 
     def _process_failed_payloads(self, response: dict, retry=3):
         """ Process the contents of a Put Records response when it contains failed records """
         failed_records = self._get_index_of_failed_record(response)
-        successful_message_count = len(self.batch_in_progress) - len(failed_records)
-        if successful_message_count:
-            logger.info(f"Sent messages to kinesis {successful_message_count}")
         if failed_records:
             logger.debug(f"Failed Records: {response['FailedRecordCount']}")
             batch_of_problematic_records = []
@@ -72,44 +96,17 @@ class KinesisBatchDispatcher(BaseDispatcher):
             i += 1
         return failed_records
 
-    def _process_batch_send_response(self, response: dict):
-        """
-        Method to send a set of messages on to the Kinesis stream
-        :param response: Response from the AWS service
-        """
-        logger.debug(f"Processing response: {response}")
-        if "Records" in response:
-            if response["FailedRecordCount"] == 0:
-                logger.info(f"{len(self.batch_in_progress)} records successfully batch "
-                            f"sent to Kinesis::{self.stream_name}")
-                self.batch_in_progress = None
-                return
-            else:
-                logger.info(f"Failed payloads detected ({response['FailedRecordCount']}), processing errors...")
-                self._process_failed_payloads(response)
+    def _unpack_failed_batch_to_unprocessed_items(self, batch: dict):
+        """ Extract all records from the attempted batch payload """
+        extracted_payloads = [self._unpack_individual_failed_payload(pl) for pl in batch['Records']]
+        self.unprocessed_items = self.unprocessed_items + extracted_payloads
 
-    def _batch_send_payloads(self, batch: (list, dict) = None, **kwargs):
-        """ Attempt to send a single batch of metrics to Kinesis """
-        if 'retry' in kwargs:
-            self.batch_in_progress = batch
-            super()._batch_send_payloads(batch, kwargs['retry'])
-        else:
-            self.batch_in_progress = batch
-            super()._batch_send_payloads({'StreamName': self.stream_name, 'Records': batch})
+    def _send_individual_payload(self, payload: dict, retry: int = 4):
+        """ Send an individual payload to Kinesis """
+        _payload = payload
+        _payload['StreamName'] = self.stream_name
+        super()._send_individual_payload(_payload, retry)
 
-    def flush_payloads(self):
-        """ Push all metrics in the payload list to Kinesis """
-        super().flush_payloads()
-
-    def _append_payload_to_current_batch(self, payload):
-        """ Append the payload to the service specific batch structure """
-        self._batch_payload.append(payload)
-
-    def submit_payload(self, payload: dict):
-        """ Submit a metric ready to be batched up and sent to Kinesis """
-        logger.debug(f"Payload submitted to {self.aws_service_name} dispatcher: {payload}")
-        constructed_payload = {
-            'Data': dumps(payload, cls=DecimalEncoder),
-            'PartitionKey': f'{payload[self.partition_key_identifier] if self.partition_key_identifier else uuid4()}'
-        }
-        super().submit_payload(constructed_payload)
+    def _unpack_individual_failed_payload(self, payload):
+        """ Extract the record from a constructed payload """
+        return loads(payload['Data'])

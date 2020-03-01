@@ -1,6 +1,7 @@
 from unittest import TestCase
 from unittest.mock import patch, Mock, call
-from copy import deepcopy
+
+from botocore.exceptions import ClientError
 
 from boto3_batch_utils import KinesisBatchDispatcher
 
@@ -65,6 +66,11 @@ class TestKinesis(TestCase):
         failure_response_2 = {
             'FailedRecordCount': 5,
             'Records': [
+                {'m_id': 1, 'message': 'message contents 1'},
+                {'m_id': 2, 'message': 'message contents 2'},
+                {'m_id': 3, 'message': 'message contents 3'},
+                {'m_id': 4, 'message': 'message contents 4'},
+                {'m_id': 5, 'message': 'message contents 5'},
                 {'m_id': 6, 'message': 'message contents 6', 'ErrorCode': 'badness'},
                 {'m_id': 7, 'message': 'message contents 7', 'ErrorCode': 'badness'},
                 {'m_id': 8, 'message': 'message contents 8', 'ErrorCode': 'badness'},
@@ -78,6 +84,9 @@ class TestKinesis(TestCase):
         failure_response_3 = {
             'FailedRecordCount': 2,
             'Records': [
+                {'m_id': 6, 'message': 'message contents 6'},
+                {'m_id': 7, 'message': 'message contents 7'},
+                {'m_id': 8, 'message': 'message contents 8'},
                 {'m_id': 9, 'message': 'message contents 9', 'ErrorCode': 'badness'},
                 {'m_id': 10, 'message': 'message contents 10', 'ErrorCode': 'badness'}
             ],
@@ -105,20 +114,121 @@ class TestKinesis(TestCase):
                 {'Data': '{"m_id": 8, "message": "message contents 8"}', 'PartitionKey': '8'},
                 {'Data': '{"m_id": 9, "message": "message contents 9"}', 'PartitionKey': '9'},
                 {'Data': '{"m_id": 10, "message": "message contents 10"}', 'PartitionKey': '10'}
+            ], 'StreamName': 'test_stream'}),
+            call(**{'Records': [
+                {'Data': '{"m_id": 6, "message": "message contents 6"}', 'PartitionKey': '6'},
+                {'Data': '{"m_id": 7, "message": "message contents 7"}', 'PartitionKey': '7'},
+                {'Data': '{"m_id": 8, "message": "message contents 8"}', 'PartitionKey': '8'},
+                {'Data': '{"m_id": 9, "message": "message contents 9"}', 'PartitionKey': '9'},
+                {'Data': '{"m_id": 10, "message": "message contents 10"}', 'PartitionKey': '10'}
             ], 'StreamName': 'test_stream'})
-            # call(**{'Records': [
-            #     {'Data': '{"m_id": 6, "message": "message contents 6"}', 'PartitionKey': '6'},
-            #     {'Data': '{"m_id": 7, "message": "message contents 7"}', 'PartitionKey': '7'},
-            #     {'Data': '{"m_id": 8, "message": "message contents 8"}', 'PartitionKey': '8'},
-            #     {'Data': '{"m_id": 9, "message": "message contents 9"}', 'PartitionKey': '9'},
-            #     {'Data': '{"m_id": 10, "message": "message contents 10"}', 'PartitionKey': '10'}
-            # ], 'StreamName': 'test_stream'})
+        ])
+        kinesis_client._individual_dispatch_method.assert_has_calls([
+            call(Data='{"m_id": 9, "message": "message contents 9"}', PartitionKey='9', StreamName='test_stream'),
+            call(Data='{"m_id": 10, "message": "message contents 10"}', PartitionKey='10', StreamName='test_stream')
         ])
 
-        # kinesis_client._individual_dispatch_method.assert_has_calls([
-        #     call(**{'Data': '{"m_id": 9, "message": "message contents 9"}', 'PartitionKey': '9',
-        #             'StreamName': 'test_stream'}),
-        #     call(**{'Data': '{"m_id": 10, "message": "message contents 10"}', 'PartitionKey': '10',
-        #             'StreamName': 'test_stream'})
-        # ])
+    def test_batch_write_throws_exceptions(self):
+        kinesis_client = KinesisBatchDispatcher(stream_name='test_stream', partition_key_identifier='m_id')
+        mock_client_error = ClientError({'Error': {'Code': 500, 'Message': 'broken'}}, "Dynamo")
+        mock_boto3 = Mock()
+        kinesis_client._aws_service = mock_boto3
 
+        test_payloads = [
+            {'m_id': 1, 'message': 'message contents 1'},
+            {'m_id': 2, 'message': 'message contents 2'},
+            {'m_id': 3, 'message': 'message contents 3'},
+            {'m_id': 4, 'message': 'message contents 4'},
+            {'m_id': 5, 'message': 'message contents 5'}
+        ]
+
+        kinesis_client._batch_dispatch_method = Mock(side_effect=[mock_client_error, mock_client_error,
+                                                                  mock_client_error, mock_client_error,
+                                                                  mock_client_error])
+        kinesis_client._individual_dispatch_method = Mock()
+
+        for test_payload in test_payloads:
+            kinesis_client.submit_payload(test_payload)
+
+        kinesis_client.flush_payloads()
+
+        kinesis_client._batch_dispatch_method.assert_has_calls([
+            call(**{'Records': [
+                {'Data': '{"m_id": 1, "message": "message contents 1"}', 'PartitionKey': '1'},
+                {'Data': '{"m_id": 2, "message": "message contents 2"}', 'PartitionKey': '2'},
+                {'Data': '{"m_id": 3, "message": "message contents 3"}', 'PartitionKey': '3'},
+                {'Data': '{"m_id": 4, "message": "message contents 4"}', 'PartitionKey': '4'},
+                {'Data': '{"m_id": 5, "message": "message contents 5"}', 'PartitionKey': '5'}
+            ], 'StreamName': 'test_stream'}),
+            call(**{'Records': [
+                {'Data': '{"m_id": 1, "message": "message contents 1"}', 'PartitionKey': '1'},
+                {'Data': '{"m_id": 2, "message": "message contents 2"}', 'PartitionKey': '2'},
+                {'Data': '{"m_id": 3, "message": "message contents 3"}', 'PartitionKey': '3'},
+                {'Data': '{"m_id": 4, "message": "message contents 4"}', 'PartitionKey': '4'},
+                {'Data': '{"m_id": 5, "message": "message contents 5"}', 'PartitionKey': '5'}
+            ], 'StreamName': 'test_stream'}),
+            call(**{'Records': [
+                {'Data': '{"m_id": 1, "message": "message contents 1"}', 'PartitionKey': '1'},
+                {'Data': '{"m_id": 2, "message": "message contents 2"}', 'PartitionKey': '2'},
+                {'Data': '{"m_id": 3, "message": "message contents 3"}', 'PartitionKey': '3'},
+                {'Data': '{"m_id": 4, "message": "message contents 4"}', 'PartitionKey': '4'},
+                {'Data': '{"m_id": 5, "message": "message contents 5"}', 'PartitionKey': '5'}
+            ], 'StreamName': 'test_stream'})
+        ])
+        kinesis_client._individual_dispatch_method.assert_not_called()
+        self.assertEqual(test_payloads, kinesis_client.unprocessed_items)
+
+    def test_individual_write_throws_exceptions(self):
+        mock_client_error = ClientError({'Error': {'Code': 500, 'Message': 'broken'}}, "Dynamo")
+
+        kinesis_client = KinesisBatchDispatcher(stream_name='test_stream', partition_key_identifier='m_id')
+
+        mock_boto3 = Mock()
+        kinesis_client._aws_service = mock_boto3
+
+        test_payloads = [
+            {'m_id': 1, 'message': 'message contents 1'},
+            {'m_id': 2, 'message': 'message contents 2'}
+        ]
+
+        #  All records fail in first attempt
+        failure_response = {
+            'FailedRecordCount': 2,
+            'Records': [
+                {'m_id': 1, 'message': 'message contents 1', 'ErrorCode': 'badness'},
+                {'m_id': 2, 'message': 'message contents 2', 'ErrorCode': 'badness'}
+            ],
+            'EncryptionType': 'NONE'
+        }
+
+        kinesis_client._batch_dispatch_method = Mock(side_effect=[failure_response])
+        kinesis_client._individual_dispatch_method = Mock(side_effect=[mock_client_error, mock_client_error,
+                                                                       mock_client_error, mock_client_error,
+                                                                       mock_client_error, mock_client_error,
+                                                                       mock_client_error, mock_client_error,
+                                                                       mock_client_error, mock_client_error])
+
+        for test_payload in test_payloads:
+            kinesis_client.submit_payload(test_payload)
+
+        kinesis_client.flush_payloads()
+
+        kinesis_client._batch_dispatch_method.assert_called_once_with(
+            **{'Records': [
+                {'Data': '{"m_id": 1, "message": "message contents 1"}', 'PartitionKey': '1'},
+                {'Data': '{"m_id": 2, "message": "message contents 2"}', 'PartitionKey': '2'}
+            ], 'StreamName': 'test_stream'}
+        )
+        kinesis_client._individual_dispatch_method.assert_has_calls([
+            call(Data='{"m_id": 1, "message": "message contents 1"}', PartitionKey='1', StreamName='test_stream'),
+            call(Data='{"m_id": 1, "message": "message contents 1"}', PartitionKey='1', StreamName='test_stream'),
+            call(Data='{"m_id": 1, "message": "message contents 1"}', PartitionKey='1', StreamName='test_stream'),
+            call(Data='{"m_id": 1, "message": "message contents 1"}', PartitionKey='1', StreamName='test_stream'),
+            call(Data='{"m_id": 1, "message": "message contents 1"}', PartitionKey='1', StreamName='test_stream'),
+            call(Data='{"m_id": 2, "message": "message contents 2"}', PartitionKey='2', StreamName='test_stream'),
+            call(Data='{"m_id": 2, "message": "message contents 2"}', PartitionKey='2', StreamName='test_stream'),
+            call(Data='{"m_id": 2, "message": "message contents 2"}', PartitionKey='2', StreamName='test_stream'),
+            call(Data='{"m_id": 2, "message": "message contents 2"}', PartitionKey='2', StreamName='test_stream'),
+            call(Data='{"m_id": 2, "message": "message contents 2"}', PartitionKey='2', StreamName='test_stream')
+        ])
+        self.assertEqual(test_payloads, kinesis_client.unprocessed_items)

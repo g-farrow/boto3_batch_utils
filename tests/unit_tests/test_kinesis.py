@@ -55,11 +55,23 @@ class FlushPayloads(TestCase):
 @patch.object(BaseDispatcher, '_batch_send_payloads')
 class BatchSendPayloads(TestCase):
 
-    def test(self, mock_base_batch_send_payloads):
+    def test_list(self, mock_base_batch_send_payloads):
         kn = KinesisBatchDispatcher("test_stream", partition_key_identifier="test_part_key", max_batch_size=1)
-        test_batch = "a_test"
+        test_batch = [{"a_test": True}]
         kn._batch_send_payloads(test_batch)
         mock_base_batch_send_payloads.assert_called_once_with({'StreamName': 'test_stream', 'Records': test_batch})
+
+    def test_dict(self, mock_base_batch_send_payloads):
+        kn = KinesisBatchDispatcher("test_stream", partition_key_identifier="test_part_key", max_batch_size=1)
+        test_batch = {'StreamName': 'test_stream', 'Records': ['a', 'b', 'c']}
+        kn._batch_send_payloads(test_batch)
+        mock_base_batch_send_payloads.assert_called_once_with(test_batch)
+
+    def test_with_retries(self, mock_base_batch_send_payloads):
+        kn = KinesisBatchDispatcher("test_stream", partition_key_identifier="test_part_key", max_batch_size=1)
+        test_batch = {'StreamName': 'test_stream', 'Records': ['a', 'b', 'c']}
+        kn._batch_send_payloads(test_batch, retry=3)
+        mock_base_batch_send_payloads.assert_called_once_with(test_batch, 3)
 
 
 @patch('boto3_batch_utils.Base.boto3.client', MockClient)
@@ -275,4 +287,4 @@ class SendIndividualPayload(TestCase):
         kn._send_individual_payload(test_payload)
         _test_payload = test_payload
         _test_payload['StreamName'] = 'test_stream'
-        mock_send_individual_payload.assert_called_once_with(_test_payload)
+        mock_send_individual_payload.assert_called_once_with(_test_payload, 4)
