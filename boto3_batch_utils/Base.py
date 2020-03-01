@@ -168,7 +168,7 @@ class BaseDispatcher:
                 logger.debug("Individual send attempt has failed, retrying")
                 self._send_individual_payload(payload, retry-1)
             else:
-                logger.error("Individual send attempt has failed, no more retries remaining")
+                logger.error(f"Individual send attempt has failed, no more retries remaining: {e}")
                 self.unprocessed_items.append(self._unpack_individual_failed_payload(payload))
 
     def _unpack_individual_failed_payload(self, payload):

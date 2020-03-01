@@ -1,6 +1,6 @@
 import logging
 from uuid import uuid4
-from json import dumps
+from json import dumps, loads
 
 from boto3_batch_utils.Base import BaseDispatcher
 from boto3_batch_utils.utils import DecimalEncoder
@@ -25,12 +25,15 @@ class SQSBaseBatchDispatcher(BaseDispatcher):
         self._batch_payload = []
         self._validate_initialisation()
 
-    def _batch_send_payloads(self, batch: (dict, list) = None, **nested_batch):
+    def _batch_send_payloads(self, batch: (dict, list) = None, **kwargs):
         """ Attempt to send a single batch of records to SQS """
         if not self.queue_url:
             self.queue_url = self._aws_service.get_queue_url(QueueName=self.queue_name)['QueueUrl']
         self.batch_in_progress = batch
-        super()._batch_send_payloads({'QueueUrl': self.queue_url, 'Entries': batch})
+        if 'retry' in kwargs:
+            super()._batch_send_payloads(batch, kwargs['retry'])
+        else:
+            super()._batch_send_payloads({'Entries': batch, 'QueueUrl': self.queue_url})
 
     def _process_batch_send_response(self, response: dict):
         """ Process the response data from a batch put request """
@@ -46,6 +49,15 @@ class SQSBaseBatchDispatcher(BaseDispatcher):
                     if payload['Id'] == failed_payload_response['Id']:
                         self._send_individual_payload(payload)
         self.batch_in_progress = None
+
+    def _unpack_failed_batch_to_unprocessed_items(self, batch: dict):
+        """ Extract all records from the attempted batch payload """
+        extracted_payloads = [self._unpack_individual_failed_payload(pl) for pl in batch['Entries']]
+        self.unprocessed_items = self.unprocessed_items + extracted_payloads
+
+    def _unpack_individual_failed_payload(self, payload: dict, retry: int = 4):
+        """ Send an individual payload to Kinesis """
+        return loads(payload['MessageBody'])
 
 
 class SQSBatchDispatcher(SQSBaseBatchDispatcher):
@@ -76,12 +88,12 @@ class SQSBatchDispatcher(SQSBaseBatchDispatcher):
         else:
             logger.debug(f"Message with message_id ({message_id}) already exists in the batch, skipping...")
 
-    def _send_individual_payload(self, payload: dict, retry: int = 5):
+    def _send_individual_payload(self, payload: dict, retry: int = 4):
         """ Send an individual record to SQS """
         kwargs = {'QueueUrl': self.queue_url, 'MessageBody': payload['MessageBody']}
         if payload.get('DelaySeconds'):
             kwargs['DelaySeconds'] = payload['DelaySeconds']
-        super()._send_individual_payload(kwargs, retry=4)
+        super()._send_individual_payload(kwargs, retry)
 
 
 class SQSFifoBatchDispatcher(SQSBaseBatchDispatcher):
@@ -115,10 +127,10 @@ class SQSFifoBatchDispatcher(SQSBaseBatchDispatcher):
         logger.debug(f"SQS FIFO payload constructed: {constructed_payload}")
         super().submit_payload(constructed_payload)
 
-    def _send_individual_payload(self, payload: dict, retry: int = 5):
+    def _send_individual_payload(self, payload: dict, retry: int = 4):
         """ Send an individual record to SQS """
         kwargs = {
             'QueueUrl': self.queue_url,
             **payload
         }
-        super()._send_individual_payload(kwargs, retry=4)
+        super()._send_individual_payload(kwargs, retry)

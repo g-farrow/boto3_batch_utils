@@ -230,7 +230,7 @@ class SendIndividualPayload(TestCase):
         sqs._send_individual_payload(test_payload)
         expected_converted_payload = {"QueueUrl": "test_url", "MessageBody": "some_sort_of_payload",
                                       "DelaySeconds": 99}
-        mock_send_individual_payload.assert_called_once_with(expected_converted_payload, retry=4)
+        mock_send_individual_payload.assert_called_once_with(expected_converted_payload, 4)
 
     def test_standard_queue_without_delay_seconds(self, mock_send_individual_payload):
         sqs = SQSBatchDispatcher('test_queue', max_batch_size=1)
@@ -241,7 +241,7 @@ class SendIndividualPayload(TestCase):
             }
         sqs._send_individual_payload(test_payload)
         expected_converted_payload = {"QueueUrl": "test_url", "MessageBody": "some_sort_of_payload"}
-        mock_send_individual_payload.assert_called_once_with(expected_converted_payload, retry=4)
+        mock_send_individual_payload.assert_called_once_with(expected_converted_payload, 4)
 
     def test_fifo_queue(self, mock_send_individual_payload):
         sqs = SQSFifoBatchDispatcher('test_queue', max_batch_size=1)
@@ -258,4 +258,4 @@ class SendIndividualPayload(TestCase):
             'MessageBody': 'some_sort_of_payload',
             'MessageGroupId': 'unset'
         }
-        mock_send_individual_payload.assert_called_once_with(expected_converted_payload, retry=4)
+        mock_send_individual_payload.assert_called_once_with(expected_converted_payload, 4)
