@@ -38,6 +38,7 @@ jobs:
         pip install coverage
     - name: Send report to CodeClimate
       run: |
+        ls -l
         export GIT_BRANCH="${GITHUB_REF/refs\/heads\//}"
         curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
         chmod +x ./cc-test-reporter
