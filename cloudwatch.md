@@ -1,6 +1,6 @@
 layout: page
 title: "Cloudwatch"
-permalink: /cloudwatch/
+permalink: /cloudwatch2
 
 # Cloudwatch
 ## Abstracted Boto3 Methods:

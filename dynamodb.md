@@ -1,6 +1,6 @@
 layout: page
 title: "DynamoDB"
-permalink: /dynamodb/
+permalink: /dynamodb
 
 # Dynamo
 ## Abstracted Boto3 Methods:

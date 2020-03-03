@@ -1,6 +1,6 @@
 layout: page
 title: "Kinesis"
-permalink: /kinesis/
+permalink: /kinesis
 
 # Kinesis
 ## Abstracted Boto3 Methods:
