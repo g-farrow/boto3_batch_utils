@@ -39,9 +39,13 @@ jobs:
           pip install -r requirements.txt
           pip install nose
           pip install coverage
-      - name: Test with nose
-        run: |
-          nosetests tests/unit_tests --with-coverage --cover-min 85 --cover-package=boto3_batch_utils
+      - name: Test & publish code coverage
+        uses: paambaati/codeclimate-action@v2.5.3
+        env:
+          CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+        with:
+          coverageCommand: nosetests tests/unit_tests --with-coverage --cover-min 85 --cover-package=boto3_batch_utils
+          debug: true
 
   integrationTests:
     runs-on: ubuntu-latest
