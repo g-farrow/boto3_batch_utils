@@ -1,7 +1,3 @@
-layout: page
-title: "SQS Fifo"
-permalink: /sqs/fifo
-
 ## SQS FIFO Queues
 #### Abstracted Boto3 Methods:
 * `send_message_batch`

@@ -1,7 +1,3 @@
-layout: page
-title: "DynamoDB"
-permalink: /dynamodb
-
 # Dynamo
 ## Abstracted Boto3 Methods:
 * `batch_write_item()`

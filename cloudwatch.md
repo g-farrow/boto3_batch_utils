@@ -1,7 +1,3 @@
-layout: page
-title: "Cloudwatch"
-permalink: /cloudwatch2
-
 # Cloudwatch
 ## Abstracted Boto3 Methods:
 * `put_metric_data()`

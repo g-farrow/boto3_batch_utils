@@ -1,7 +1,3 @@
-layout: page
-title: "SQS Standard"
-permalink: /sqs/standard
-
 # SQS Standard Queues
 ## Abstracted Boto3 Methods:
 * `send_message_batch`
