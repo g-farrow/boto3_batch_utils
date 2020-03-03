@@ -36,13 +36,13 @@ jobs:
         pip install -r requirements.txt
         pip install nose
         pip install coverage
-    - name: Test & publish code coverage
-      uses: paambaati/codeclimate-action@v2.5.3
-      env:
-        CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
-      with:
-        coverageCommand: nosetests tests/unit_tests --with-coverage --cover-min 85 --cover-package=boto3_batch_utils
-        debug: true
+    - name: Send report to CodeClimate
+      run: |
+        export GIT_BRANCH="${GITHUB_REF/refs\/heads\//}"
+        curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+        chmod +x ./cc-test-reporter
+        ./cc-test-reporter format-coverage -t coverage.py coverage.xml
+        ./cc-test-reporter upload-coverage -r "${{ secrets.CC_TEST_REPORTER_ID }}"
 
   integrationTests:
     runs-on: ubuntu-latest
