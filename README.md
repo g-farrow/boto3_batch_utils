@@ -45,8 +45,8 @@ interacting with each of the various service clients is similar and follows the 
 `sqs_client.submit_payload({'test': 'message'})`
 * **flush_payloads**: send all payloads in the backlog. e.g. `sqs_client.flush_payloads()`
 
-*If you are using `boto3-batch-utils` in AWS Lambda, you should call `.flush_payloads()` at the end of every 
-invocation.*
+> If you are using `boto3-batch-utils` in AWS Lambda, you should call `.flush_payloads()` at the end of every 
+invocation.
 
 # Supported Services
 
@@ -88,10 +88,10 @@ dy.flush_payloads()
 ```
 
 ## Cloudwatch
-### Abstracted Boto3 Methods:
+#### Abstracted Boto3 Methods:
 * `put_metric_data()`
 
-### Example
+#### Example
 Batch put metric data to Cloudwatch. Cloudwatch comes with a handy dimension builder function `cloudwatch_dimension` 
 to help you construct dimensions
 ```python
@@ -107,11 +107,11 @@ cw.flush_payloads()
 ```
 
 ## SQS Standard Queues
-### Abstracted Boto3 Methods:
+#### Abstracted Boto3 Methods:
 * `send_message_batch`
 * `send_message`
 
-### Example
+#### Example
 Batch send messages to an SQS queue
 ```python
 from boto3_batch_utils import SQSBatchDispatcher
@@ -126,11 +126,11 @@ sqs.flush_payloads()
 ```
 
 ## SQS FIFO Queues
-### Abstracted Boto3 Methods:
+#### Abstracted Boto3 Methods:
 * `send_message_batch`
 * `send_message`
 
-### Example
+#### Example
 Batch send messages to an SQS queue
 ```python
 from boto3_batch_utils import SQSFifoBatchDispatcher
