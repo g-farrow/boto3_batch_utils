@@ -50,8 +50,8 @@ invocation.
 
 # Supported Services
 
-* [Kinesis](https://g-farrow.github.io/boto3_batch_utils/Kinesis)
-* [DynamoDB](https://g-farrow.github.io/boto3_batch_utils/Dynamodb/)
-* [Cloudwatch](https://g-farrow.github.io/boto3_batch_utils/Cloudwatch/)
-* [SQS Standard](https://g-farrow.github.io/boto3_batch_utils/Sqs-standard/)
-* [SQS Fifo](https://g-farrow.github.io/boto3_batch_utils/Sqs-fifo/)
+* [Kinesis](https://g-farrow.github.io/boto3_batch_utils/kinesis)
+* [DynamoDB](https://g-farrow.github.io/boto3_batch_utils/dynamodb/)
+* [Cloudwatch](https://g-farrow.github.io/boto3_batch_utils/cloudwatch/)
+* [SQS Standard](https://g-farrow.github.io/boto3_batch_utils/sqs/standard/)
+* [SQS Fifo](https://g-farrow.github.io/boto3_batch_utils/sqs/fifo/)
