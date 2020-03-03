@@ -1,3 +1,7 @@
+layout: page
+title: Kinesis
+permalink: /kinesis/
+
 # Kinesis
 ## Abstracted Boto3 Methods:
 * `put_records()`
