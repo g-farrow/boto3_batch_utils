@@ -1,4 +1,0 @@
-[run]
-branch = true
-include =
-    boto3_batch_utils/*
