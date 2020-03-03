@@ -44,6 +44,7 @@ jobs:
         chmod +x ./cc-test-reporter
         ./cc-test-reporter before-build
         nosetests tests/unit_tests --with-coverage --cover-min 85 --cover-package=boto3_batch_utils
+        ./cc-test-reporter format-coverage
         ./cc-test-reporter after-build -r "${{ secrets.CC_TEST_REPORTER_ID }}"
 
   integrationTests:
