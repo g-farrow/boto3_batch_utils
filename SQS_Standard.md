@@ -1,5 +1,5 @@
 layout: page
-title: SQS Standard
+title: "SQS Standard"
 permalink: /sqs-standard/
 
 # SQS Standard Queues

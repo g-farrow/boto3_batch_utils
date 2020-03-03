@@ -1,5 +1,5 @@
 layout: page
-title: Kinesis
+title: "Kinesis"
 permalink: /kinesis/
 
 # Kinesis

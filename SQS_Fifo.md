@@ -1,5 +1,5 @@
 layout: page
-title: SQS Fifo
+title: "SQS Fifo"
 permalink: /sqs-fifo/
 
 ## SQS FIFO Queues

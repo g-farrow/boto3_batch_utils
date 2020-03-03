@@ -1,5 +1,5 @@
 layout: page
-title: DynamoDB
+title: "DynamoDB"
 permalink: /dynamodb/
 
 # Dynamo
