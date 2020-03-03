@@ -50,79 +50,8 @@ invocation.
 
 # Supported Services
 
-[Kinesis](https://g-farrow.github.io/boto3_batch_utils/kinesis)
-
-## Dynamo
-### Abstracted Boto3 Methods:
-* `batch_write_item()`
-
-### Example
-Batch write records to a DynamoDB table
-```python
-from boto3_batch_utils import DynamoBatchDispatcher
-
-
-dy = DynamoBatchDispatcher('MyExampleDynamoTable', partition_key='Id')
-
-dy.submit_payload({"something": "in", "my": "message"})
-dy.submit_payload({"tells": "me", "this": "is", "easy": True})
-
-dy.flush_payloads()
-```
-
-## Cloudwatch
-#### Abstracted Boto3 Methods:
-* `put_metric_data()`
-
-#### Example
-Batch put metric data to Cloudwatch. Cloudwatch comes with a handy dimension builder function `cloudwatch_dimension` 
-to help you construct dimensions
-```python
-from boto3_batch_utils import CloudwatchBatchDispatcher, cloudwatch_dimension
-
-
-cw = CloudwatchBatchDispatcher('TestService')
-
-cw.submit_payload('DoingACountMetric', dimensions=cloudwatch_dimension('dimA', '12345'), value=555, unit='Count')
-cw.submit_payload('DoingACountMetric', dimensions=cloudwatch_dimension('dimA', '12345'), value=1234, unit='Count')
-
-cw.flush_payloads()
-```
-
-## SQS Standard Queues
-#### Abstracted Boto3 Methods:
-* `send_message_batch`
-* `send_message`
-
-#### Example
-Batch send messages to an SQS queue
-```python
-from boto3_batch_utils import SQSBatchDispatcher
-
-
-sqs = SQSBatchDispatcher("aQueueWithAName")
-
-sqs.submit_payload("some message of some sort")
-sqs.submit_payload("a different message, probably a similar sort")
-
-sqs.flush_payloads()
-```
-
-## SQS FIFO Queues
-#### Abstracted Boto3 Methods:
-* `send_message_batch`
-* `send_message`
-
-#### Example
-Batch send messages to an SQS queue
-```python
-from boto3_batch_utils import SQSFifoBatchDispatcher
-
-
-sqs = SQSFifoBatchDispatcher("aQueueWithAName")
-
-sqs.submit_payload("some message of some sort")
-sqs.submit_payload("a different message, probably a similar sort")
-
-sqs.flush_payloads()
-```
+* [Kinesis](https://g-farrow.github.io/boto3_batch_utils/kinesis)
+* [DynamoDB](https://g-farrow.github.io/boto3_batch_utils/dynamodb/)
+* [Cloudwatch](https://g-farrow.github.io/boto3_batch_utils/cloudwatch/)
+* [SQS Standard](https://g-farrow.github.io/boto3_batch_utils/sqs-standard/)
+* [SQS Fifo](https://g-farrow.github.io/boto3_batch_utils/sqs-fifo/)
