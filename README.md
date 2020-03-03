@@ -6,6 +6,8 @@ This library offers some functionality to assist in writing records to AWS servi
 naturally batched. This helps to achieve significant efficiencies when interacting with those AWS services as batch 
 writes are often much more efficient than individual writes.
 
+[Documentation]()
+
 # Installation
 The package can be installed using `pip`:
 ```
@@ -48,7 +50,12 @@ invocation.*
 
 # Supported Services
 
-## Kinesis `put_records()` and `put_record()`
+## Kinesis
+### Abstracted Boto3 Methods:
+* `put_records()`
+* `put_record()`
+
+### Example
 Batch Put items to a Kinesis stream
 ```python
 from boto3_batch_utils import KinesisBatchDispatcher
@@ -62,7 +69,11 @@ kn.submit_payload({"tells": "me", "this": "is", "easy": True})
 kn.flush_payloads()
 ```
 
-#### Dynamo `batch_write_item()`
+## Dynamo
+### Abstracted Boto3 Methods:
+* `batch_write_item()`
+
+### Example
 Batch write records to a DynamoDB table
 ```python
 from boto3_batch_utils import DynamoBatchDispatcher
@@ -76,7 +87,11 @@ dy.submit_payload({"tells": "me", "this": "is", "easy": True})
 dy.flush_payloads()
 ```
 
-#### Cloudwatch `put_metric_data()`
+## Cloudwatch
+### Abstracted Boto3 Methods:
+* `put_metric_data()`
+
+### Example
 Batch put metric data to Cloudwatch. Cloudwatch comes with a handy dimension builder function `cloudwatch_dimension` 
 to help you construct dimensions
 ```python
@@ -91,7 +106,12 @@ cw.submit_payload('DoingACountMetric', dimensions=cloudwatch_dimension('dimA', '
 cw.flush_payloads()
 ```
 
-#### SQS Standard Queues `send_message_batch` and `send_message`
+## SQS Standard Queues
+### Abstracted Boto3 Methods:
+* `send_message_batch`
+* `send_message`
+
+### Example
 Batch send messages to an SQS queue
 ```python
 from boto3_batch_utils import SQSBatchDispatcher
@@ -105,7 +125,12 @@ sqs.submit_payload("a different message, probably a similar sort")
 sqs.flush_payloads()
 ```
 
-#### SQS FIFO Queues `send_message_batch` and `send_message`
+## SQS FIFO Queues
+### Abstracted Boto3 Methods:
+* `send_message_batch`
+* `send_message`
+
+### Example
 Batch send messages to an SQS queue
 ```python
 from boto3_batch_utils import SQSFifoBatchDispatcher
