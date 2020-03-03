@@ -50,7 +50,7 @@ invocation.
 
 # Supported Services
 
-[Kinesis](https://g-farrow.github.io/boto3_batch_utils/Kinesis)
+[Kinesis](https://g-farrow.github.io/boto3_batch_utils/kinesis)
 
 ## Dynamo
 ### Abstracted Boto3 Methods:
