@@ -42,10 +42,12 @@ jobs:
       - name: Send report to CodeClimate
         run: |
           export GIT_BRANCH="${GITHUB_REF/refs\/heads\//}"
+          export GIT_COMMIT_SHA="${GITHUB_SHA::8}"
           curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
           chmod +x ./cc-test-reporter
-          ./cc-test-reporter format-coverage -t coverage.py coverage.xml
-          ./cc-test-reporter upload-coverage -r "${{ secrets.CC_TEST_REPORTER_ID }}"
+          ./cc-test-reporter before-build
+          nosetests tests/unit_tests --with-coverage --cover-min 85 --cover-package=boto3_batch_utils
+          ./cc-test-reporter after-build -r "${{ secrets.CC_TEST_REPORTER_ID }}"
 
   integrationTests:
     runs-on: ubuntu-latest
