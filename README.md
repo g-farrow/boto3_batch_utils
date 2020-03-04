@@ -1,4 +1,6 @@
-![Master Pipeline](https://github.com/g-farrow/boto3_batch_utils/workflows/Master%20Pipeline/badge.svg)
+![PyPI](https://img.shields.io/pypi/v/boto3-batch-utils?style=for-the-badge)
+![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/g-farrow/boto3_batch_utils/Boto3%20Batch%20Utils/master?label=MASTER%20BRANCH&logo=github&style=for-the-badge)
+
 
 Boto3 Batch Utils
 =================
@@ -40,10 +42,11 @@ send/put/write methods, without the headaches of error handling and batch sizes.
 Each of the supported services has it's own dispatcher client. Each has the same 2 methods with which to interact. So
 interacting with each of the various service clients is similar and follows the same 3 steps: 
 * **Initialise**: Instantiate the batch dispatcher, passing in the required configuration. e.g. 
-`sqs_client = SQSBatchDispatcher("MySqsQueue")`
+  * `sqs_client = SQSBatchDispatcher("MySqsQueue")`
 * **submit_payload**: pass in a payload (e.g. a single message, metric etc): e.g.
-`sqs_client.submit_payload({'test': 'message'})`
-* **flush_payloads**: send all payloads in the backlog. e.g. `sqs_client.flush_payloads()`
+  * `sqs_client.submit_payload({'test': 'message'})`
+* **flush_payloads**: send all payloads in the backlog. e.g.
+  * `sqs_client.flush_payloads()`
 
 > If you are using `boto3-batch-utils` in AWS Lambda, you should call `.flush_payloads()` at the end of every 
 invocation.
