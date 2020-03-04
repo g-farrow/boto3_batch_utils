@@ -7,7 +7,13 @@
 * `put_record()`
 
 #### Usage
-Batch Put items to a Kinesis stream
+Batch Put items to a Kinesis stream.
+
+Initialise the client by providing it with the name of the Kinesis Stream.
+
+Submit the records which should be sent.
+
+Finally, flush any remaining, unsent payloads.
 ```python
 from boto3_batch_utils import KinesisBatchDispatcher
 
