@@ -1,4 +1,6 @@
-![Master Pipeline](https://github.com/g-farrow/boto3_batch_utils/workflows/Master%20Pipeline/badge.svg)
+![PyPI](https://img.shields.io/pypi/v/boto3-batch-utils?style=for-the-badge)
+![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/g-farrow/boto3_batch_utils/Boto3%20Batch%20Utils/master?label=MASTER%20BRANCH&logo=github&style=for-the-badge)
+
 
 Boto3 Batch Utils
 =================
@@ -39,107 +41,13 @@ send/put/write methods, without the headaches of error handling and batch sizes.
 
 Each of the supported services has it's own dispatcher client. Each has the same 2 methods with which to interact. So
 interacting with each of the various service clients is similar and follows the same 3 steps: 
-* **Initialise**: Instantiate the batch dispatcher, passing in the required configuration. e.g. 
-`sqs_client = SQSBatchDispatcher("MySqsQueue")`
-* **submit_payload**: pass in a payload (e.g. a single message, metric etc): e.g.
-`sqs_client.submit_payload({'test': 'message'})`
-* **flush_payloads**: send all payloads in the backlog. e.g. `sqs_client.flush_payloads()`
+* **Initialise**: Instantiate the batch dispatcher, passing in the required configuration.
+* **submit_payload**: pass in a payload (e.g. a single message, metric etc).
+* **flush_payloads**: send all payloads in the backlog.
 
 > If you are using `boto3-batch-utils` in AWS Lambda, you should call `.flush_payloads()` at the end of every 
 invocation.
 
-# Supported Services
+# Documentation
 
-## Kinesis
-### Abstracted Boto3 Methods:
-* `put_records()`
-* `put_record()`
-
-### Example
-Batch Put items to a Kinesis stream
-```python
-from boto3_batch_utils import KinesisBatchDispatcher
-
-
-kn = KinesisBatchDispatcher('MyExampleStreamName')
-
-kn.submit_payload({"something": "in", "my": "message"})
-kn.submit_payload({"tells": "me", "this": "is", "easy": True})
-
-kn.flush_payloads()
-```
-
-## Dynamo
-### Abstracted Boto3 Methods:
-* `batch_write_item()`
-
-### Example
-Batch write records to a DynamoDB table
-```python
-from boto3_batch_utils import DynamoBatchDispatcher
-
-
-dy = DynamoBatchDispatcher('MyExampleDynamoTable', partition_key='Id')
-
-dy.submit_payload({"something": "in", "my": "message"})
-dy.submit_payload({"tells": "me", "this": "is", "easy": True})
-
-dy.flush_payloads()
-```
-
-## Cloudwatch
-#### Abstracted Boto3 Methods:
-* `put_metric_data()`
-
-#### Example
-Batch put metric data to Cloudwatch. Cloudwatch comes with a handy dimension builder function `cloudwatch_dimension` 
-to help you construct dimensions
-```python
-from boto3_batch_utils import CloudwatchBatchDispatcher, cloudwatch_dimension
-
-
-cw = CloudwatchBatchDispatcher('TestService')
-
-cw.submit_payload('DoingACountMetric', dimensions=cloudwatch_dimension('dimA', '12345'), value=555, unit='Count')
-cw.submit_payload('DoingACountMetric', dimensions=cloudwatch_dimension('dimA', '12345'), value=1234, unit='Count')
-
-cw.flush_payloads()
-```
-
-## SQS Standard Queues
-#### Abstracted Boto3 Methods:
-* `send_message_batch`
-* `send_message`
-
-#### Example
-Batch send messages to an SQS queue
-```python
-from boto3_batch_utils import SQSBatchDispatcher
-
-
-sqs = SQSBatchDispatcher("aQueueWithAName")
-
-sqs.submit_payload("some message of some sort")
-sqs.submit_payload("a different message, probably a similar sort")
-
-sqs.flush_payloads()
-```
-
-## SQS FIFO Queues
-#### Abstracted Boto3 Methods:
-* `send_message_batch`
-* `send_message`
-
-#### Example
-Batch send messages to an SQS queue
-```python
-from boto3_batch_utils import SQSFifoBatchDispatcher
-
-
-sqs = SQSFifoBatchDispatcher("aQueueWithAName")
-
-sqs.submit_payload("some message of some sort")
-sqs.submit_payload("a different message, probably a similar sort")
-
-sqs.flush_payloads()
-```
+Full documentation is available here: [boto3-batch-utils Docs](https://g-farrow.github.io/boto3_batch_utils/)
