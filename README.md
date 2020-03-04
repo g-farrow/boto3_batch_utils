@@ -1,5 +1,5 @@
 ![PyPI](https://img.shields.io/pypi/v/boto3-batch-utils?style=for-the-badge)
-![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/g-farrow/boto3_batch_utils/Boto3%20Batch%20Utils/master?label=MASTER%20BRANCH&logo=github&style=for-the-badge)
+![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/g-farrow/boto3_batch_utils/Master%20Pipeline?label=MASTER%20BRANCH&logo=github&style=for-the-badge)
 
 
 Boto3 Batch Utils
@@ -7,8 +7,6 @@ Boto3 Batch Utils
 This library offers some functionality to assist in writing records to AWS services in batches, where your data is not 
 naturally batched. This helps to achieve significant efficiencies when interacting with those AWS services as batch 
 writes are often much more efficient than individual writes.
-
-[Documentation]()
 
 # Installation
 The package can be installed using `pip`:
