@@ -1,8 +1,10 @@
+[Back to main page](https://g-farrow.github.io/boto3_batch_utils)
+
 # Cloudwatch
-## Abstracted Boto3 Methods:
+#### Abstracted Boto3 Methods:
 * `put_metric_data()`
 
-## Example
+#### Example
 Batch put metric data to Cloudwatch. Cloudwatch comes with a handy dimension builder function `cloudwatch_dimension` 
 to help you construct dimensions
 ```python
@@ -16,3 +18,5 @@ cw.submit_payload('DoingACountMetric', dimensions=cloudwatch_dimension('dimA', '
 
 cw.flush_payloads()
 ```
+
+[Back to main page](https://g-farrow.github.io/boto3_batch_utils)
