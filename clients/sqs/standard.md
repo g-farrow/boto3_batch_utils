@@ -20,7 +20,7 @@ from boto3_batch_utils import SQSBatchDispatcher
 
 sqs = SQSBatchDispatcher('aQueueWithAName')
 
-payload = {'something': 'in', 'my': 'message'}
+payload = {'myId': 'abc123', 'something': 'in', 'my': 'message'}
 
 sqs.submit_payload(payload)
 
@@ -49,6 +49,7 @@ client will assign a unique ID for you. However, if you wish to override this, s
 `message_id` argument on the `submit_payload` method:
 ```python
 sqs.submit_payload(payload, message_id="abc123")
+sqs.submit_payload(payload, message_id=payload['myId'])
 ```
 
 #### Delay Seconds
