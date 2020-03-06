@@ -31,19 +31,13 @@ Gigabits/Second | Terabits/Second | Count/Second | None`
 Cloudwatch comes with a handy dimension builder function `cloudwatch_dimension` 
 to help you construct dimensions.
 ```python
-from boto3_batch_utils import CloudwatchBatchDispatcher, cloudwatch_dimension as cd
+from boto3_batch_utils import CloudwatchBatchDispatcher
 
 
 cw = CloudwatchBatchDispatcher('TestService')
 
 cw.submit_payload('DoingACountMetric', value=555)
-cw.submit_payload('DoingACountMetric', value=1234, dimensions=cd('dimA', '12345'), unit='Count')
-cw.submit_payload(
-    'DoingASecondsMetric',
-    value=978,
-    dimensions=[cd('timeA', '11'), cd('timeB', '4')],
-    unit='Seconds'
-)
+cw.submit_payload('DoingACountMetric', value=4, unit='Seconds')
 
 cw.flush_payloads()
 ```
@@ -70,6 +64,18 @@ The Kinesis client has the following maximum batch limitations:
  `cloudwatch_dimension` to correctly format dimensions. The inputs to this helper function are:
  * `name`: The name of the dimension.
  * `value`: The value of the dimension.
+ 
+ ```python
+from boto3_batch_utils import CloudwatchBatchDispatcher, cloudwatch_dimension as cd
+
+
+cw = CloudwatchBatchDispatcher('TestService')
+
+cw.submit_payload('DoingACountMetric', value=1234, dimensions=cd('dimA', '12345'))
+cw.submit_payload('DoingASecondsMetric', value=978, dimensions=[cd('timeA', '11'), cd('timeB', '4')])
+
+cw.flush_payloads()
+```
 
 
 ---------------------------
