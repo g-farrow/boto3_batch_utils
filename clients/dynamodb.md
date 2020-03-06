@@ -17,8 +17,8 @@ from boto3_batch_utils import DynamoBatchDispatcher
 
 dy = DynamoBatchDispatcher('MyExampleDynamoTable', partition_key='id')
 
-dy.submit_payload({"id": "", "something": "in", "my": "message"})
-dy.submit_payload({"id": "", "tells": "me", "this": "is", "easy": True})
+dy.submit_payload({'id': '', 'something': 'in', 'my': 'message'})
+dy.submit_payload({'id': '', 'tells': 'me', 'this': 'is', 'easy': True})
 
 dy.flush_payloads()
 ```
