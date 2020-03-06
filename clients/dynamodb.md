@@ -40,14 +40,14 @@ The DynamoDB client has the following maximum batch limitations:
 | Byte size of a single record | 400,000 bytes    |
 | Byte size of a batch         | 16,000,000 bytes |
 
-#### Partition Key
-# TODO if the partition key is not present in the record
+#### Partition Key and Partition Key Location 
+# TODO
 
 ##### Partition Key Data Type
 # TODO
 
 #### Sort Key
-
+# TODO
 
 ---------------------------
 [Back to main page](https://g-farrow.github.io/boto3_batch_utils)

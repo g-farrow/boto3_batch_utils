@@ -50,30 +50,34 @@ Pass in a payload (e.g. a single message, metric etc): e.g.
 
 **flush_payloads**:
 Send all payloads in the backlog. e.g.
-> `sqs_client.flush_payloads()`
+> `unprocessed_items = sqs_client.flush_payloads()`
 
-> If you are using `boto3-batch-utils` in AWS Lambda, you should call `.flush_payloads()` at the end of every 
+> If you are using `boto3-batch-utils` in AWS Lambda, you should call `flush_payloads` at the end of every 
 invocation.
 
 # Supported Services
 The following AWS Services are currently supported by Boto3 Batch Utils:
 
-##### [Kinesis](https://g-farrow.github.io/boto3_batch_utils/clients/kinesis)
-##### [DynamoDB](https://g-farrow.github.io/boto3_batch_utils/clients/dynamodb)
-##### [Cloudwatch](https://g-farrow.github.io/boto3_batch_utils/clients/cloudwatch)
-##### [SQS Standard](https://g-farrow.github.io/boto3_batch_utils/clients/sqs/standard)
-##### [SQS Fifo](https://g-farrow.github.io/boto3_batch_utils/clients/sqs/fifo)
+#### [Kinesis](https://g-farrow.github.io/boto3_batch_utils/clients/kinesis)
+#### [DynamoDB](https://g-farrow.github.io/boto3_batch_utils/clients/dynamodb)
+#### [Cloudwatch](https://g-farrow.github.io/boto3_batch_utils/clients/cloudwatch)
+#### [SQS Standard](https://g-farrow.github.io/boto3_batch_utils/clients/sqs/standard)
+#### [SQS Fifo](https://g-farrow.github.io/boto3_batch_utils/clients/sqs/fifo)
+
+----------------------------
 
 # Advanced Usage
 The library can be used very simply. However in some scenarios you may require greater control over its behaviour. Or
 to understand how it works in more detail.
 
-##### [Limits and Match Management](https://g-farrow.github.io/boto3_batch_utils/advanced-usage/limits)
-Learn how Boto3 Batch Utils decides when to dispatch batches and adhere to AWS Service limits.
 
-##### [Unprocessed Items](https://g-farrow.github.io/boto3_batch_utils/advanced-usage/unprocessed-items)
+#### Limits and Batch Management
+Learn how Boto3 Batch Utils decides when to dispatch batches and adhere to AWS Service limits in
+[Limits and Batch Management](https://g-farrow.github.io/boto3_batch_utils/advanced-usage/limits)
+
+#### Unprocessed Items
 What happens if the client is unable to send a payload or an entire batch? Learn how Boto3 Batch Utils handles errors
-and failures.
+and failures in [Unprocessed Items](https://g-farrow.github.io/boto3_batch_utils/advanced-usage/unprocessed-items)
 
-##### Client Specific Advanced Usage
+#### Client Specific Advanced Usage
 Each client has its own advanced usage, refer to each client's docs for further information.
