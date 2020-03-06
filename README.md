@@ -64,9 +64,10 @@ invocation.
 ##### [SQS Fifo](https://g-farrow.github.io/boto3_batch_utils/clients/sqs/fifo)
 
 # Advanced Usage
-The library can be used very simply. However in some scenarios you may require greater control over its behaviour.
+The library can be used very simply. However in some scenarios you may require greater control over its behaviour. Or
+to understand how it works in more detail.
 
-##### [Managing Batches](https://g-farrow.github.io/boto3_batch_utils/advanced-usage/batches)
+##### [Limits and Match Management](https://g-farrow.github.io/boto3_batch_utils/advanced-usage/limits)
 ##### [Unprocessed Items](https://g-farrow.github.io/boto3_batch_utils/advanced-usage/unprocessed-items)
 
 Each client has its own advanced usage, refer to each client's docs for further information.
