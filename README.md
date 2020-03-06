@@ -56,6 +56,7 @@ Send all payloads in the backlog. e.g.
 invocation.
 
 # Supported Services
+The following AWS Services are currently supported by Boto3 Batch Utils:
 
 ##### [Kinesis](https://g-farrow.github.io/boto3_batch_utils/clients/kinesis)
 ##### [DynamoDB](https://g-farrow.github.io/boto3_batch_utils/clients/dynamodb)
@@ -68,6 +69,11 @@ The library can be used very simply. However in some scenarios you may require g
 to understand how it works in more detail.
 
 ##### [Limits and Match Management](https://g-farrow.github.io/boto3_batch_utils/advanced-usage/limits)
-##### [Unprocessed Items](https://g-farrow.github.io/boto3_batch_utils/advanced-usage/unprocessed-items)
+Learn how Boto3 Batch Utils decides when to dispatch batches and adhere to AWS Service limits.
 
+##### [Unprocessed Items](https://g-farrow.github.io/boto3_batch_utils/advanced-usage/unprocessed-items)
+What happens if the client is unable to send a payload or an entire batch? Learn how Boto3 Batch Utils handles errors
+and failures.
+
+##### Client Specific Advanced Usage
 Each client has its own advanced usage, refer to each client's docs for further information.
