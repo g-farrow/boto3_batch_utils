@@ -49,7 +49,7 @@ features:
 #### Batch Size
 For information about batch sizes [click here](https://g-farrow.github.io/boto3_batch_utils/advanced-usage/batches).
 
-The Kinesis client has the following maximum batch limitations:
+The Cloudwatch client has the following maximum batch limitations:
 
 | *Limit Type*                 | *Limit*         |
 |------------------------------|-----------------|

@@ -32,6 +32,17 @@ Using the basic features of the SQS Standard client will suit most use cases. Ho
 additional control over how the data is transmitted to SQS. The SQS Standard client allows configuration of the following
 behaviour:
 
+#### Batch Size
+For information about batch sizes [click here](https://g-farrow.github.io/boto3_batch_utils/advanced-usage/batches).
+
+The Sqs Standard client has the following maximum batch limitations:
+
+| *Limit Type*                 | *Limit*        |
+|------------------------------|----------------|
+| Number of Records            | 10             |
+| Byte size of a single record | 262,144 bytes  |
+| Byte size of a batch         | 262,144 bytes  |
+
 #### Message Id
 Within a single batch submission to SQS, each message must be assigned a unique ID. By default the Boto3 Batch Utils 
 client will assign a unique ID for you. However, if you wish to override this, simply provide the desired ID using the
