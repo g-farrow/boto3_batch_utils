@@ -86,7 +86,7 @@ class SQSBatchDispatcher(SQSBaseBatchDispatcher):
             logger.debug(f"SQS payload constructed: {constructed_payload}")
             super().submit_payload(constructed_payload)
         else:
-            logger.debug(f"Message with message_id ({message_id}) already exists in the batch, skipping...")
+            logger.warning(f"Message with message_id ({message_id}) already exists in the batch, skipping...")
 
     def _send_individual_payload(self, payload: dict, retry: int = 4):
         """ Send an individual record to SQS """
@@ -119,7 +119,7 @@ class SQSFifoBatchDispatcher(SQSBaseBatchDispatcher):
             if not any(d['MessageDeduplicationId'] == message_deduplication_id for d in self._batch_payload):
                 constructed_payload['MessageDeduplicationId'] = message_deduplication_id
             else:
-                logger.debug(f"Message with message_id ({message_id}) already exists in the batch, skipping...")
+                logger.warning(f"Message with message_id ({message_id}) already exists in the batch, skipping...")
                 return
         elif not self.content_based_deduplication:
             raise ValueError(f"Target SQS FIFO queue ({self.queue_name}) is not shown to have ContentBasedDeduplication"
