@@ -71,7 +71,7 @@ When a record is submitted to the SQS Standard client using `submit_payload` it 
 will only be accepted if it is considered unique. Uniqueness criteria for this client are:
 * The message's `message_id` does not match a `message_id` of any of the messages in the list of records pending 
 dispatch.
-> *Note*: This is different to the SQS FIFO client which instead uses a message's `message_deduplication_id`.
+> *Note*: This is different to the SQS _FIFO_ client which instead uses a message's `message_deduplication_id`.
 
 ---------------------------
 [Back to main page](https://g-farrow.github.io/boto3_batch_utils)
