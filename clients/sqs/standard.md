@@ -34,9 +34,9 @@ additional control over how the data is transmitted to SQS. The SQS Standard cli
 behaviour:
 
 #### Batch Size
-For information about batch sizes [click here](https://g-farrow.github.io/boto3_batch_utils/advanced-usage/batches).
+For information about batch sizes [click here](https://g-farrow.github.io/boto3_batch_utils/advanced-usage/limits).
 
-The Sqs Standard client has the following maximum batch limitations:
+The SQS Standard client has the following maximum batch limitations:
 
 | *Limit Type*                 | *Limit*        |
 |------------------------------|----------------|
@@ -58,7 +58,7 @@ SQS allows messages to be published to a Standard queue, but to remain invisible
 this functionality in the 
 [official AWS docs](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-delay-queues.html).
 
-> Please note that this feature is not available on FIFO queues.
+> Please note that AWS does not support this feature on SQS FIFO queues.
 
 Boto3 Batch Utils allows configuration of Delay Seconds on a per message basis. The delay maybe 0 to 900 seconds 
 (15 minutes). To use this feature, provide the `delay_seconds` argument to the `submit_payload` method:

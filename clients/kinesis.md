@@ -33,7 +33,7 @@ additional control over how the data is transmitted to Kinesis. The Kinesis clie
 behaviour:
 
 #### Batch Size
-For information about batch sizes [click here](https://g-farrow.github.io/boto3_batch_utils/advanced-usage/batches).
+For information about batch sizes [click here](https://g-farrow.github.io/boto3_batch_utils/advanced-usage/limits).
 
 The Kinesis client has the following maximum batch limitations:
 
@@ -44,7 +44,7 @@ The Kinesis client has the following maximum batch limitations:
 | Byte size of a batch         | 5,000,000 bytes |
 
 #### Partition Keys
-A Kinesis stream is made up of 1 or more _Shards_. For more information about Shards, refer to thew Kinesis docs 
+A Kinesis stream is made up of 1 or more _Shards_. For more information about Shards, refer to the Kinesis docs 
 [here](https://docs.aws.amazon.com/streams/latest/dev/key-concepts.html). By default Boto3 Batch Utils will evenly
 distribute records across all Shards in a Stream. It does this by assigning a random unique id to each record, which is 
 used as that records [Partition Key](https://docs.aws.amazon.com/streams/latest/dev/key-concepts.html#partition-key).

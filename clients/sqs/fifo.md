@@ -11,7 +11,7 @@
 Batch send messages to an SQS "FIFO" queue. 
 ([Click here for SQS Standard Queues](https://g-farrow.github.io/boto3_batch_utils/clients/sqs/standard))
 
-The SQS Standard Client is initialised with the name of the SQS queue. Once initialised, messages can be submitted as 
+The SQS FIFO Client is initialised with the name of the SQS queue. Once initialised, messages can be submitted as 
 `dict` objects.
 
 ```python
@@ -33,7 +33,7 @@ additional control over how the data is transmitted to SQS. The SQS FIFO client 
 behaviour:
 
 #### Batch Size
-For information about batch sizes [click here](https://g-farrow.github.io/boto3_batch_utils/advanced-usage/batches).
+For information about batch sizes [click here](https://g-farrow.github.io/boto3_batch_utils/advanced-usage/limits).
 
 The Sqs FIFO client has the following maximum batch limitations:
 
@@ -79,11 +79,14 @@ sqs.submit_payload(payload, message_id="abc123", message_group_id='mg1A')
 ```
 
 #### Uniqueness
-When a record is submitted to the SQS Standard client using `submit_payload` it is checked for uniqueness. The record
+When a record is submitted to the SQS FIFO client using `submit_payload` it is checked for uniqueness. The record
 will only be accepted if it is considered unique. Uniqueness criteria for this client are:
 * The message's `message_deduplication_id` does not match a `message_deduplication_id` of any of the messages in the 
 list of records pending dispatch.
 > *Note*: This is different to the SQS _Standard_ client which instead uses a message's `message_id`.
+
+For more information, refer to the **Message Deduplication Id** section above.
+
 
 ---------------------------
 [Back to main page](https://g-farrow.github.io/boto3_batch_utils)

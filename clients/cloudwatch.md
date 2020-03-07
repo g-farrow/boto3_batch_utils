@@ -12,13 +12,12 @@ Batch put metric data to Cloudwatch.
 The Cloudwatch client is intialised with the 
 [Namespace](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/cloudwatch_concepts.html#Namespace) required.
 
-To submit a customer Cloudwatch metric, provide the following information:
+To submit a custom Cloudwatch metric, provide the following information:
 * `metric_name`: The name of the metric which the data will be associated with. See 
 [Metrics](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/cloudwatch_concepts.html#Metric) for more 
 information.
 * `value`: The value of the metric.
-* `timestamp`: (Optional) Defaults to `now()`. The timestamp for when the metric is pertinent. Default is 
-now().
+* `timestamp`: (Optional) Defaults to `now()`. The timestamp for when the metric is pertinent.
 * `dimensions`: (Optional) See 
 [Dimensions](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/cloudwatch_concepts.html#Dimension) for more
 information. Provide either a `cloudwatch_dimension` or a list of multiple `cloudwatch_dimension`.
@@ -29,8 +28,6 @@ Terabytes | Bits | Kilobits | Megabits | Gigabits | Terabits | Percent | Count |
 Megabytes/Second | Gigabytes/Second | Terabytes/Second | Bits/Second | Kilobits/Second | Megabits/Second | 
 Gigabits/Second | Terabits/Second | Count/Second | None`
 
-Cloudwatch comes with a handy dimension builder function `cloudwatch_dimension` 
-to help you construct dimensions.
 ```python
 from boto3_batch_utils import CloudwatchBatchDispatcher
 
@@ -43,12 +40,15 @@ cw.submit_payload('DoingACountMetric', value=4, unit='Seconds')
 cw.flush_payloads()
 ```
 
+Cloudwatch comes with a handy dimension builder function `cloudwatch_dimension` 
+to help you construct dimensions (see below).
+
 ## Advanced Usage
 The Cloudwatch client can be used very simply. However, you can gain additional control with the following advanced 
 features:
 
 #### Batch Size
-For information about batch sizes [click here](https://g-farrow.github.io/boto3_batch_utils/advanced-usage/batches).
+For information about batch sizes [click here](https://g-farrow.github.io/boto3_batch_utils/advanced-usage/limits).
 
 The Cloudwatch client has the following maximum batch limitations:
 

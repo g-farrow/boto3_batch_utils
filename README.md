@@ -33,9 +33,9 @@ For more information on `boto3` configuration, refer to the AWS documentation
 The library is very simple to use. To use it, you must initialise a client, send it the payloads you want to transmit
  and finally tell the client to clear down.
 
-To use the library you do not need care how to batch up the payloads and send them into their target service. The 
+To use the library you do not need to care how payloads are batched and sent to their target service. The 
 library will take care of this for you. This allows you to utilise the significant efficiencies of `boto3`'s batch 
-send/put/write methods, without the headaches of error handling and batch sizes.
+send/put/write methods, without the headaches of error handling, retries and batch sizes.
 
 Each of the supported services has it's own dispatcher client. Each has the same 2 methods with which to interact. So
 interacting with each of the various service clients is similar and follows the same 3 steps: 
@@ -45,7 +45,7 @@ Instantiate the batch dispatcher, passing in the required configuration. e.g.
 > `sqs_client = SQSBatchDispatcher("MySqsQueue")`
 
 **submit_payload**:
-Pass in a payload (e.g. a single message, metric etc): e.g.
+Pass in a payload (e.g. a single message, metric etc) - this step can be repeated as many times as necessary: e.g.
 > `sqs_client.submit_payload({'test': 'message'})`
 
 **flush_payloads**:
@@ -73,27 +73,26 @@ to understand how it works in more detail.
 
 #### Limits and Batch Management
 Learn how Boto3 Batch Utils decides when to dispatch batches and adhere to AWS Service limits in
-[Limits and Batch Management](https://g-farrow.github.io/boto3_batch_utils/advanced-usage/limits)
+[Limits and Batch Management](https://g-farrow.github.io/boto3_batch_utils/advanced-usage/limits).
 
 #### Unprocessed Items
 What happens if the client is unable to send a payload or an entire batch? Learn how Boto3 Batch Utils handles errors
-and failures in [Unprocessed Items](https://g-farrow.github.io/boto3_batch_utils/advanced-usage/unprocessed-items)
+and failures in [Unprocessed Items](https://g-farrow.github.io/boto3_batch_utils/advanced-usage/unprocessed-items).
 
 #### Client Specific Advanced Usage
 Each client has its own advanced usage, refer to each client's docs for further information.
 
 #### Uniqueness of Messages
 Boto3 Batch Utils is designed to help ensure efficient transmission of messages to an AWS Service. To this end it will
-attempt to ensure it does not transmit duplicate messages within a batch. However, this is different on a client by
-client basis.
+attempt to ensure it does not transmit duplicate messages within a batch. However, this is different on a 
+client-by-client basis.
 
 Some AWS Services, such as DynamoDB have strong opinions about the 'uniqueness' of a message. Where as others, such as
-Cloudwatch Metrics, will allow duplicate messages to be sent. Where possible Boto3 Batch Utils clients will deduplicate
+Cloudwatch Metrics, will allow duplicate messages to be sent. Where possible, Boto3 Batch Utils clients will deduplicate
 messages when they are submitted with `submit_payload`. To learn more about a specific client's deduplication behaviour
 refer to its documentation. 
 
-If a submitted message is _not_ considered to be unique, then a `WARNING` log will be written. However, as this is
-considered correct behaviour, not exception is raised. 
+If a submitted message is _not_ considered to be unique, then a `WARNING` log will be written.
 [Click here](https://g-farrow.github.io/boto3_batch_utils/advanced-usage/logging) for more information about logging.
 
 Messages are only checked for uniqueness against any messages which are pending dispatch. Once a message has been sent 
