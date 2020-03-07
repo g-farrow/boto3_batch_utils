@@ -38,6 +38,9 @@ differently as the AWS Services they represent are not consistent. This may take
 smaller batches and retrying, continuing to break batches down until it gives up and places messages on the 
 `unprocessed_items` list. Or it may switch from sending batches to using the AWS Service's unbatched/single payload API.
 
+From the point of view of the interface, the retry mechanism is abstracted, but all clients will return any unprocessed
+items in the `unprocessed_items` list, when `flush_payloads` is called.
+
 
 ---------------------------
 [Back to main page](https://g-farrow.github.io/boto3_batch_utils)
