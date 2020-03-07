@@ -18,9 +18,11 @@ However, all clients will ensure that a submitted payload does not exceed the by
 | SQS - Standard       | 262,144 bytes           |
 | SQS - FIFO           | 262,144 bytes           | 
 
+Submitting a payload which exceeds the client's payload byte size limit will result in a `ValueError` exception.
+
 ### Batches and Batch Management
 Each client will manage the size of the batches it sends to its respective service. Each time a new payload is submitted
-to the client it will decide when to send a batch based the following criteria:
+to the client it will decide when to send a batch based on the following criteria:
 
 ##### Maximum Batch Size
 The client has a maximum batch size, or payload count. Each client may have a different maximum batch size:
@@ -34,7 +36,10 @@ The client has a maximum batch size, or payload count. Each client may have a di
 | SQS - FIFO           | 10                       |
 
 Each time a new payload is accepted to the client, the count of payloads is checked. If the count equals the client's
-maximum, then the batch will be flushed - i.e. broadcast to the AWS Service.
+maximum, then the batch will be flushed - i.e. broadcast to the AWS Service. A new, empty, batch is then started.
+
+If any payloads remain unsent in the client once processing is complete, they are flushed when `flush_payloads` is 
+called. Therefore it is important that this method is called before the process/invocation ends.
 
 ##### Maximum Batch Byte Size
 The client also has a maximum overall payload limit. Each client may have a different limit:
@@ -49,7 +54,7 @@ The client also has a maximum overall payload limit. Each client may have a diff
 
 Each time a new payload is submitted, its byte size is checked. If the payload fits within the overall maximum limit for
 a batch for this service, it is added to the batch. If it would cause the batch to exceed the limit, the existing batch
-is flushed - i.e. broadcast to the AWS Service. The newly submitted is then added to a new, empty batch.
+is flushed - i.e. broadcast to the AWS Service. The newly submitted payload is then added to a new, empty batch.
 
 
 

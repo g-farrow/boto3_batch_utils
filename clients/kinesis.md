@@ -3,11 +3,11 @@
 ---------------------------
 
 # Kinesis
-#### Abstracted Boto3 Methods:
+### Abstracted Boto3 Methods:
 * `put_records()`
 * `put_record()`
 
-#### Usage
+### Usage
 Batch Put items to a Kinesis stream.
 
 Initialise the client by providing it with the name of the Kinesis Stream.
@@ -32,7 +32,7 @@ Using the basic features of the Kinesis client will suit most use cases. However
 additional control over how the data is transmitted to Kinesis. The Kinesis client allows configuration of the following
 behaviour:
 
-#### Batch Size
+### Batch Size
 For information about batch sizes [click here](https://g-farrow.github.io/boto3_batch_utils/advanced-usage/limits).
 
 The Kinesis client has the following maximum batch limitations:
@@ -43,7 +43,7 @@ The Kinesis client has the following maximum batch limitations:
 | Byte size of a single record | 1,000,000 bytes |
 | Byte size of a batch         | 5,000,000 bytes |
 
-#### Partition Keys
+### Partition Keys
 A Kinesis stream is made up of 1 or more _Shards_. For more information about Shards, refer to the Kinesis docs 
 [here](https://docs.aws.amazon.com/streams/latest/dev/key-concepts.html). By default Boto3 Batch Utils will evenly
 distribute records across all Shards in a Stream. It does this by assigning a random unique id to each record, which is 
@@ -54,7 +54,8 @@ nicely.
 However, you may require more control over the allocation of a record to a given Shard. This can be done by telling
 the client which part of a record to use as the Partition Key value.
 
-##### Example
+**Example**
+
 In this example, records can have varying content, keys and values. However, all records will have a unique id. In this
 case I wish to use this id as the Partition Key. The id is located against the 'Id' key in the record:
 ```python
@@ -77,7 +78,7 @@ With this configuration the example record would be dispatched to Kinesis with i
 }
 ```
 
-#### Uniqueness
+### Uniqueness
 When a record is submitted to the Kinesis client using `submit_payload` it is *NOT* checked for uniqueness. When sending
 data to Kinesis Stream, it is perfectly acceptable to send duplicate messages. In fact this may be desired behaviour.
 

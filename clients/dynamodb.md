@@ -29,7 +29,7 @@ Using the basic features of the DynamoDB client will suit most use cases. Howeve
 additional control over how the data is transmitted to DynamoDB. The DynamoDB client allows configuration of the
 following behaviour:
 
-#### Batch Size
+### Batch Size
 For information about batch sizes [click here](https://g-farrow.github.io/boto3_batch_utils/advanced-usage/limits).
 
 The DynamoDB client has the following maximum batch limitations:
@@ -40,16 +40,16 @@ The DynamoDB client has the following maximum batch limitations:
 | Byte size of a single record | 400,000 bytes    |
 | Byte size of a batch         | 16,000,000 bytes |
 
-#### Partition Key and Partition Key Location 
+### Partition Key and Partition Key Location 
 # TODO
 
-##### Partition Key Data Type
+### Partition Key Data Type
 # TODO
 
-#### Sort Key
+### Sort Key
 # TODO
 
-#### Uniqueness
+### Uniqueness
 When a record is submitted to the DynamoDB client using `submit_payload` it is checked for uniqueness. The record will 
 only be accepted if it is considered unique. Uniqueness criteria for this client are:
 * If the DynamoDB table has a sort key: _The combination of the **Partition Key** and **Sort Key** must not exist in the 

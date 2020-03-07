@@ -12,7 +12,7 @@ import logging
 logging.getLogger("boto3-batch-utils").setLevel("WARNING")
 ```
 
-If more complex interaction wit the logger is required, refer to the 
+If more complex interaction with the logger is required, refer to the 
 [Python Logging documentation](https://docs.python.org/3.7/library/logging.html)
 
 

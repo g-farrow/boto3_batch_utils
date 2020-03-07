@@ -3,10 +3,10 @@
 ---------------------------
 
 # Cloudwatch
-#### Abstracted Boto3 Methods:
+### Abstracted Boto3 Methods:
 * `put_metric_data()`
 
-#### Usage
+### Usage
 Batch put metric data to Cloudwatch.
 
 The Cloudwatch client is intialised with the 
@@ -47,7 +47,7 @@ to help you construct dimensions (see below).
 The Cloudwatch client can be used very simply. However, you can gain additional control with the following advanced 
 features:
 
-#### Batch Size
+### Batch Size
 For information about batch sizes [click here](https://g-farrow.github.io/boto3_batch_utils/advanced-usage/limits).
 
 The Cloudwatch client has the following maximum batch limitations:
@@ -59,7 +59,7 @@ The Cloudwatch client has the following maximum batch limitations:
 | Byte size of a batch         | 40,960 bytes    |
 | Dimensions Per Metric        | 10              |
 
-#### Dimensions
+### Dimensions
 [Cloudwatch Metrics Dimensions](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/cloudwatch_concepts.html#Dimension)
  are optional. If required between one and ten dimensions may be used. Boto3 Batch Utils provides a helper function
  `cloudwatch_dimension` to correctly format dimensions. The inputs to this helper function are:
@@ -78,7 +78,7 @@ cw.submit_payload('DoingASecondsMetric', value=978, dimensions=[cd('timeA', '11'
 cw.flush_payloads()
 ```
 
-#### Uniqueness
+### Uniqueness
 When a record is submitted to the Cloudwatch client using `submit_payload` it is *NOT* checked for uniqueness. When 
 sending data to Cloudwatch Metrics Stream, it is both likely and valid to send duplicate metric payloads.
 

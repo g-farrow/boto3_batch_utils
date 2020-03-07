@@ -3,11 +3,11 @@
 ---------------------------
 
 # SQS Standard Queues
-#### Abstracted Boto3 Methods:
+### Abstracted Boto3 Methods:
 * `send_message_batch`
 * `send_message`
 
-#### Usage
+### Usage
 Batch send messages to an SQS "Standard" queue. 
 ([Click here for SQS FIFO Queues](https://g-farrow.github.io/boto3_batch_utils/clients/sqs/fifo))
 
@@ -33,7 +33,7 @@ Using the basic features of the SQS Standard client will suit most use cases. Ho
 additional control over how the data is transmitted to SQS. The SQS Standard client allows configuration of the following
 behaviour:
 
-#### Batch Size
+### Batch Size
 For information about batch sizes [click here](https://g-farrow.github.io/boto3_batch_utils/advanced-usage/limits).
 
 The SQS Standard client has the following maximum batch limitations:
@@ -44,7 +44,7 @@ The SQS Standard client has the following maximum batch limitations:
 | Byte size of a single record | 262,144 bytes  |
 | Byte size of a batch         | 262,144 bytes  |
 
-#### Message Id
+### Message Id
 Within a single batch submission to SQS, each message must be assigned a unique ID. By default the Boto3 Batch Utils 
 client will assign a unique ID for you. However, if you wish to override this, simply provide the desired ID using the
 `message_id` argument on the `submit_payload` method:
@@ -53,7 +53,7 @@ sqs.submit_payload(payload, message_id="abc123")
 sqs.submit_payload(payload, message_id=payload['myId'])
 ```
 
-#### Delay Seconds
+### Delay Seconds
 SQS allows messages to be published to a Standard queue, but to remain invisible for a period of time. Read more about
 this functionality in the 
 [official AWS docs](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-delay-queues.html).
@@ -66,7 +66,7 @@ Boto3 Batch Utils allows configuration of Delay Seconds on a per message basis. 
 sqs.submit_payload(payload, delay_seconds=45)
 ```
 
-#### Uniqueness
+### Uniqueness
 When a record is submitted to the SQS Standard client using `submit_payload` it is checked for uniqueness. The record
 will only be accepted if it is considered unique. Uniqueness criteria for this client are:
 * The message's `message_id` does not match a `message_id` of any of the messages in the list of records pending 
