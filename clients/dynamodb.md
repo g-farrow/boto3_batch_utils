@@ -49,5 +49,13 @@ The DynamoDB client has the following maximum batch limitations:
 #### Sort Key
 # TODO
 
+#### Uniqueness
+When a record is submitted to the DynamoDB client using `submit_payload` it is checked for uniqueness. The record will 
+only be accepted if it is considered unique. Uniqueness criteria for this client are:
+* If the DynamoDB table has a sort key: _The combination of the *Partition Key* and *Sort Key* must not exist in the 
+list of records pending dispatch._
+* If the DynamoDB table does not have a Sort Key: _The *Partition Key* must not exist in the list of records pending
+dispatch._
+
 ---------------------------
 [Back to main page](https://g-farrow.github.io/boto3_batch_utils)

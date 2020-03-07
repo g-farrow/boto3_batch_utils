@@ -81,3 +81,21 @@ and failures in [Unprocessed Items](https://g-farrow.github.io/boto3_batch_utils
 
 #### Client Specific Advanced Usage
 Each client has its own advanced usage, refer to each client's docs for further information.
+
+#### Uniqueness of Messages
+Boto3 Batch Utils is designed to help ensure efficient transmission of messages to an AWS Service. To this end it will
+attempt to ensure it does not transmit duplicate messages within a batch. However, this is different on a client by
+client basis.
+
+Some AWS Services, such as DynamoDB have strong opinions about the 'uniqueness' of a message. Where as others, such as
+Cloudwatch Metrics, will allow duplicate messages to be sent. Where possible Boto3 Batch Utils clients will deduplicate
+messages when they are submitted with `submit_payload`. To learn more about a specific client's deduplication behaviour
+refer to its documentation. 
+
+If a submitted message is _not_ considered to be unique, then a `WARNING` log will be written. However, as this is
+considered correct behaviour, not exception is raised. 
+[Click here](https://g-farrow.github.io/boto3_batch_utils/advanced-usage/logging) for more information about logging.
+
+Messages are only checked for uniqueness against any messages which are pending dispatch. Once a message has been sent 
+to its respective AWS Service, the client will no longer be aware of it. Therefore uniqueness is not enforced across
+multiple batches.
