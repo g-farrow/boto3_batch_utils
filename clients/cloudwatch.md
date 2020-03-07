@@ -78,6 +78,9 @@ cw.submit_payload('DoingASecondsMetric', value=978, dimensions=[cd('timeA', '11'
 cw.flush_payloads()
 ```
 
+#### Uniqueness
+When a record is submitted to the Cloudwatch client using `submit_payload` it is *NOT* checked for uniqueness. When 
+sending data to Cloudwatch Metrics Stream, it is both likely and valid to send duplicate metric payloads.
 
 ---------------------------
 [Back to main page](https://g-farrow.github.io/boto3_batch_utils)
