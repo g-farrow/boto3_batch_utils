@@ -77,6 +77,11 @@ With this configuration the example record would be dispatched to Kinesis with i
 }
 ```
 
+#### Uniqueness
+When a record is submitted to the Kinesis client using `submit_payload` it is *NOT* checked for uniqueness. When sending
+data to Kinesis Stream, it is perfectly acceptable to send duplicate messages. In fact this may be desired behaviour.
+
+
 ---------------------------
 
 [Back to main page](https://g-farrow.github.io/boto3_batch_utils)
