@@ -32,12 +32,12 @@ class DynamoBatchDispatcher(BaseDispatcher):
     def __str__(self):
         return f"DynamoBatchDispatcher::{self.dynamo_table_name}"
 
-    def submit_payload(self, payload, partition_key_location: str = "Id"):
+    def submit_payload(self, payload, partition_key_location: str = None):
         """
         Submit a record ready for batch sending to DynamoDB
         """
         logger.debug(f"Payload submitted to {self.aws_service_name} dispatcher: {payload}")
-        if self.partition_key not in payload.keys():
+        if partition_key_location:
             payload[self.partition_key] = self.partition_key_data_type(payload[partition_key_location])
         if self._check_payload_is_unique(payload):
             super().submit_payload({
