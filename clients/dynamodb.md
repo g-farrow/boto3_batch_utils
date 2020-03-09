@@ -10,8 +10,9 @@
 Batch write records to a DynamoDB table.
 
 Initialise the client by providing the name of the DynamoDB Table and providing the `partition_key`. The `partition_key`
-argument allows the client to find the Partition Key from within the submitted records. If the Partition Key is not
-present in the record, it can be submitted separately (see Advanced Usage below).
+argument allows the client to find the Partition Key from within the submitted records and to deduplication payloads. If
+the Partition Key is not present in the record or if it needs to be overridden, it can be submitted separately (see
+Advanced Usage below).
 ```python
 from boto3_batch_utils import DynamoBatchDispatcher
 
@@ -19,7 +20,6 @@ from boto3_batch_utils import DynamoBatchDispatcher
 dy = DynamoBatchDispatcher('MyExampleDynamoTable', partition_key='id')
 
 dy.submit_payload({'id': '', 'something': 'in', 'my': 'message'})
-dy.submit_payload({'id': '', 'tells': 'me', 'this': 'is', 'easy': True})
 
 dy.flush_payloads()
 ```
@@ -41,13 +41,41 @@ The DynamoDB client has the following maximum batch limitations:
 | Byte size of a batch         | 16,000,000 bytes |
 
 ### Partition Key and Partition Key Location 
-# TODO
+By default, the Partition Key will be the value located in the corresponding key within the payload when
+`submit_payload` is called.
 
-### Partition Key Data Type
-# TODO
+For instance, if the DynamoDB client is intialised with a `partition_key` of "myId" then `submit_payload` will look for
+"myId" in the payload. This will then be used to ensure the payload is not a duplicate of a previously submitted 
+payload.
+
+However, it may be necessary to submit payloads which do not already contain the Partition Key attribute. In this 
+scenario you can instruct Boto3 Batch Utils to locate a different value within the payload and set the Partition Key on 
+your behalf.
+```python
+dy = DynamoBatchDispatcher('MyExampleDynamoTable', partition_key='myId')
+
+dy.submit_payload({'id': 'abc123', 'something': 'in', 'my': 'message'}, partition_key_location='id')
+```
+In the above example the actual record submitted to DynamoDB would look as follows:
+```python
+{'myId': 'abc123', 'id': 'abc123', 'something': 'in', 'my': 'message'}
+```
+#### Partition Key Data Type
+By default, using `partition_key_location` to identify the desired Partition Key will convert the value found to a 
+`str`. If the DynamoDB table's Partition Key is _not_ a string you need to pass in the correct object type using
+`partition_key_data_type` when the client is intialised, e.g.:
+```python
+dy = DynamoBatchDispatcher('MyExampleDynamoTable', partition_key='myId', partition_key_data_type=int)
+```
 
 ### Sort Key
-# TODO
+During initialisation, indicate that the DynamoDB table uses a Sort Key. This is done by passing in the location within
+payloads that the Sort Key can be found. The Sort Key is used  by the client to assist with record deduplication.
+```python
+dy = DynamoBatchDispatcher('MyExampleDynamoTable', partition_key='myId', sort_key='createdDatetime')
+```
+> **Note**: Unlike partition key, the sort key can _not_ be overridden during the `submit_payload`. It must already 
+> exist in the payload.
 
 ### Uniqueness
 When a record is submitted to the DynamoDB client using `submit_payload` it is checked for uniqueness. The record will 
