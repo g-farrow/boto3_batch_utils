@@ -25,7 +25,7 @@ payload = {'myId': 'abc123', 'something': 'in', 'my': 'message'}
 
 sqs.submit_payload(payload)
 
-sqs.flush_payloads()
+unprocessed_records = sqs.flush_payloads()
 ```
 
 ## Advanced Usage

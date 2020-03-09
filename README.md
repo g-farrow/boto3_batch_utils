@@ -41,16 +41,18 @@ Each of the supported services has it's own dispatcher client. Each has the same
 interacting with each of the various service clients is similar and follows the same 3 steps: 
 
 **Initialise**:
-Instantiate the batch dispatcher, passing in the required configuration. e.g. 
-> `sqs_client = SQSBatchDispatcher("MySqsQueue")`
+Instantiate the batch dispatcher, passing in the required configuration.
 
 **submit_payload**:
-Pass in a payload (e.g. a single message, metric etc) - this step can be repeated as many times as necessary: e.g.
-> `sqs_client.submit_payload({'test': 'message'})`
+Pass in a payload (e.g. a single message, metric etc) - this step can be repeated as many times as necessary.
 
 **flush_payloads**:
-Send all payloads in the backlog. e.g.
-> `unprocessed_items = sqs_client.flush_payloads()`
+Send all payloads in the backlog.
+```python
+sqs_client = SQSBatchDispatcher("MySqsQueue")
+sqs_client.submit_payload({'test': 'message'})
+unprocessed_items = sqs_client.flush_payloads()
+```
 
 > If you are using `boto3-batch-utils` in AWS Lambda, you should call `flush_payloads` at the end of every 
 invocation.

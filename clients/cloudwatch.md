@@ -37,7 +37,7 @@ cw = CloudwatchBatchDispatcher('TestService')
 cw.submit_payload('DoingACountMetric', value=555)
 cw.submit_payload('DoingACountMetric', value=4, unit='Seconds')
 
-cw.flush_payloads()
+unprocessed_records = cw.flush_payloads()
 ```
 
 Cloudwatch comes with a handy dimension builder function `cloudwatch_dimension` 

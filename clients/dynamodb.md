@@ -21,7 +21,7 @@ dy = DynamoBatchDispatcher('MyExampleDynamoTable', partition_key='id')
 
 dy.submit_payload({'id': '', 'something': 'in', 'my': 'message'})
 
-dy.flush_payloads()
+unprocessed_records = dy.flush_payloads()
 ```
 
 ## Advanced Usage

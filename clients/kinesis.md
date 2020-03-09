@@ -24,7 +24,7 @@ kn = KinesisBatchDispatcher('MyExampleStreamName')
 kn.submit_payload({'something': 'in', 'my': 'message'})
 kn.submit_payload({'tells': 'me', 'this': 'is', 'easy': True})
 
-kn.flush_payloads()
+unprocessed_records = kn.flush_payloads()
 ```
 
 ## Advanced Usage
