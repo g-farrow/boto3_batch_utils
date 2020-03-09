@@ -12,4 +12,4 @@ __all__ = [
     'SQSFifoBatchDispatcher'
 ]
 
-__version__ = '3.0.6'
+__version__ = '4.0.0'
