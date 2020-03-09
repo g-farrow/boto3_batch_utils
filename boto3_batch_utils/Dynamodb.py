@@ -32,7 +32,7 @@ class DynamoBatchDispatcher(BaseDispatcher):
     def __str__(self):
         return f"DynamoBatchDispatcher::{self.dynamo_table_name}"
 
-    def submit_payload(self, payload, partition_key_location: str = "Id"):
+    def submit_payload(self, payload, partition_key_location: str = None):
         """
         Submit a record ready for batch sending to DynamoDB
         """
