@@ -1,6 +1,6 @@
 ![PyPI](https://img.shields.io/pypi/v/boto3-batch-utils?style=for-the-badge)
 ![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/g-farrow/boto3_batch_utils/Master%20Pipeline?label=MASTER%20BRANCH&logo=github&style=for-the-badge)
-
+![PyUP](https://pyup.io/repos/github/g-farrow/boto3_batch_utils/shield.svg?style=for-the-badge)
 
 Boto3 Batch Utils
 =================
