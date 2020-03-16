@@ -41,7 +41,7 @@ jobs:
           pip install coverage
       - name: Test with nose
         run: |
-          nosetests tests/unit_tests --with-coverage --cover-min 85 --cover-package=boto3_batch_utils
+          nosetests tests/unit_tests --with-coverage --cover-min-percentage 85 --cover-package=boto3_batch_utils
 
 
   integrationTests:

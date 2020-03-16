@@ -51,3 +51,7 @@ invocation.
 # Documentation
 
 Full documentation is available here: [boto3-batch-utils Docs](https://g-farrow.github.io/boto3_batch_utils/)
+
+# Contributing
+For more information about contributing to this project, please refer to the 
+[Developer documentation](resources/developer_docs.md).
