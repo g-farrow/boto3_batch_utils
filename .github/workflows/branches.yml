@@ -65,7 +65,7 @@ jobs:
   ShouldDeploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - name: Testing Tags
         if: ${GITHUB_REF#refs/tags/} == 'test'
         run: |
           echo "Testing: " + ${GITHUB_REF#refs/tags/}
