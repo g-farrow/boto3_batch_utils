@@ -2,3 +2,6 @@
 branch = true
 include =
     boto3_batch_utils/*
+
+[report]
+fail_under = 85
