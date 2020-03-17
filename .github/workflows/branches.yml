@@ -39,13 +39,19 @@ jobs:
           pip install -r requirements.txt
           pip install nose
           pip install coverage
-          pip install codecov
+          pip install coverage-badge
       - name: Test with nose and coverage
         run: |
           nosetests tests/unit_tests --with-coverage --cover-min-percentage 85 --cover-package=boto3_batch_utils
-          codecov --token=${{ secrets.GITHUB_TOKEN }} --commit=${{ github.sha }}
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+          coverage-badge -o resources/coverage.svg
+      - name: Commit files
+        run: |
+          git config --local user.name "GitHub Action"
+          git commit resources/coverage.svg -m "Add changes"
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
 
   integrationTests:
