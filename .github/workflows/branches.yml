@@ -40,10 +40,10 @@ jobs:
           pip install nose
           pip install coverage
           pip install codecov
-      - name: Test with nose
+      - name: Test with nose and coverage
         run: |
           nosetests tests/unit_tests --with-coverage --cover-min-percentage 85 --cover-package=boto3_batch_utils
-          codecov --token=${{ secrets.GITHUB_TOKEN }}
+          codecov --token=${{ secrets.GITHUB_TOKEN }} --commit=${{ github.sha }}
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
