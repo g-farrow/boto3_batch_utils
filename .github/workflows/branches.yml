@@ -39,21 +39,9 @@ jobs:
           pip install -r requirements.txt
           pip install nose
           pip install coverage
-          pip install coverage-badge
       - name: Test with nose and coverage
         run: |
           nosetests tests/unit_tests --with-coverage --cover-min-percentage 85 --cover-package=boto3_batch_utils
-          coverage-badge -o resources/coverage.svg
-      - name: Commit files
-        run: |
-          git config --local user.name "GitHub Action"
-          git add resources/coverage.svg
-          git commit -m "Add changes"
-      - name: Push changes
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-
 
   integrationTests:
     runs-on: ubuntu-latest
