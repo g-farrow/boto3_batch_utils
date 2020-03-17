@@ -72,7 +72,7 @@ class SQSBatchDispatcher(SQSBaseBatchDispatcher):
     def __str__(self):
         return f"SQSBatchDispatcher::{self.queue_name}"
 
-    def submit_payload(self, payload: dict, message_id="", delay_seconds: int = None, message_group_id: str = 'unset'):
+    def submit_payload(self, payload: dict, message_id: str = None, delay_seconds: int = None):
         """ Submit a record ready to be batched up and sent to SQS """
         logger.debug(f"Payload submitted to SQS dispatcher: {payload}")
         message_id = message_id or str(uuid4())
