@@ -106,8 +106,8 @@ class SQSFifoBatchDispatcher(SQSBaseBatchDispatcher):
     def __str__(self):
         return f"SQSFifoBatchDispatcher::{self.queue_name}"
 
-    def submit_payload(self, payload: dict, message_id=str(uuid4()), delay_seconds: int = None,
-                       message_group_id: str = 'unset', message_deduplication_id: str = None):
+    def submit_payload(self, payload: dict, message_id=str(uuid4()), message_group_id: str = 'unset',
+                       message_deduplication_id: str = None):
         """ Submit a record ready to be batched up and sent to SQS """
         logger.debug(f"Payload submitted to SQS FIFO dispatcher: {payload}")
         constructed_payload = {
