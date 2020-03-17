@@ -43,11 +43,11 @@ jobs:
       - name: Test with nose and coverage
         run: |
           nosetests tests/unit_tests --with-coverage --cover-min-percentage 85 --cover-package=boto3_batch_utils
-          coverage-badge -o ../resources/coverage.svg
+          coverage-badge -o resources/coverage.svg
       - name: Commit files
         run: |
           git config --local user.name "GitHub Action"
-          git commit resources/coverage.svg -m "Add changes"
+          git commit /home/runner/work/boto3_batch_utils/boto3_batch_utils/resources/coverage.svg -m "Add changes"
       - name: Push changes
         uses: ad-m/github-push-action@master
         with:
