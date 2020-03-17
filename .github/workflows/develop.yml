@@ -1,4 +1,4 @@
-name: Master Pipeline
+name: Develop Pipeline
 on:
   push:
     branches:
