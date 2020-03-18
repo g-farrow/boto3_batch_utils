@@ -63,7 +63,19 @@ class SubmitPayload(TestCase):
             {'Id': test_id, 'MessageBody': dumps(test_message)}
         )
 
-    def test_fifo_queue_message_based_deduplication_ignore_duplicate(self, mock_submit_payload):
+    def test_fifo_queue_message_id_deduplication_ignore_duplicate(self, mock_submit_payload):
+        fifo = SQSFifoBatchDispatcher('test_queue', max_batch_size=2)
+        test_message = {'something': 'else'}
+        test_id = "abcdefg"
+        fifo._batch_payload = [{
+            'Id': 'abcdefg',
+            'MessageBody': str(test_message),
+            'MessageGroupId': 'asdfg'
+        }]
+        fifo.submit_payload(test_message, test_id)
+        mock_submit_payload.assert_not_called()
+
+    def test_fifo_queue_message_deduplication_id_duplication_ignore_duplicate(self, mock_submit_payload):
         fifo = SQSFifoBatchDispatcher('test_queue', max_batch_size=2)
         test_message = {'something': 'else'}
         test_id = "123"
