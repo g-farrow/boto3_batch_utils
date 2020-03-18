@@ -47,7 +47,7 @@ class SubmitPayload(TestCase):
     def test_standard_queue_with_delay_seconds(self, mock_submit_payload):
         sqs = SQSBatchDispatcher('test_queue', max_batch_size=1)
         test_message = {'something': 'else'}
-        test_id = 123
+        test_id = "123"
         test_delay = 3
         sqs.submit_payload(test_message, test_id, test_delay)
         mock_submit_payload.assert_called_once_with(
@@ -57,35 +57,16 @@ class SubmitPayload(TestCase):
     def test_standard_queue_without_delay_seconds(self, mock_submit_payload):
         sqs = SQSBatchDispatcher('test_queue', max_batch_size=1)
         test_message = {'something': 'else'}
-        test_id = 123
+        test_id = "123"
         sqs.submit_payload(test_message, test_id)
         mock_submit_payload.assert_called_once_with(
             {'Id': test_id, 'MessageBody': dumps(test_message)}
         )
 
-    def test_fifo_queue_content_based_deduplication(self, mock_submit_payload):
-        sqs = SQSFifoBatchDispatcher('test_queue', max_batch_size=1,
-                                     content_based_deduplication=True)
-        test_message = {'something': 'else'}
-        test_id = 123
-        sqs.submit_payload(test_message, test_id)
-        mock_submit_payload.assert_called_once_with(
-            {'Id': test_id, 'MessageBody': dumps(test_message), 'MessageGroupId': 'unset'}
-        )
-
-    def test_fifo_queue_message_based_deduplication(self, mock_submit_payload):
-        sqs = SQSFifoBatchDispatcher('test_queue', max_batch_size=1)
-        test_message = {'something': 'else'}
-        test_id = 123
-        with self.assertRaises(ValueError) as context:
-            sqs.submit_payload(test_message, test_id)
-        self.assertIn("`message_deduplication_id` MUST be set", str(context.exception))
-        mock_submit_payload.assert_not_called()
-
     def test_fifo_queue_message_based_deduplication_ignore_duplicate(self, mock_submit_payload):
         fifo = SQSFifoBatchDispatcher('test_queue', max_batch_size=2)
         test_message = {'something': 'else'}
-        test_id = 123
+        test_id = "123"
         fifo._batch_payload = [{
             'Id': 'abcdefg',
             'MessageBody': str(test_message),
