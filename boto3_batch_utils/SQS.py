@@ -75,7 +75,7 @@ class SQSBatchDispatcher(SQSBaseBatchDispatcher):
     def submit_payload(self, payload: dict, message_id: str = None, delay_seconds: int = None):
         """ Submit a record ready to be batched up and sent to SQS """
         logger.debug(f"Payload submitted to SQS dispatcher: {payload}")
-        message_id = message_id or str(uuid4())
+        message_id = message_id or uuid4().hex
         if not any(d["Id"] == message_id for d in self._batch_payload):
             constructed_payload = {
                 'Id': message_id,
@@ -106,12 +106,12 @@ class SQSFifoBatchDispatcher(SQSBaseBatchDispatcher):
     def __str__(self):
         return f"SQSFifoBatchDispatcher::{self.queue_name}"
 
-    def submit_payload(self, payload: dict, message_id=str(uuid4()), message_group_id: str = 'unset',
+    def submit_payload(self, payload: dict, message_id: str = None, message_group_id: str = 'unset',
                        message_deduplication_id: str = None):
         """ Submit a record ready to be batched up and sent to SQS """
         logger.debug(f"Payload submitted to SQS FIFO dispatcher: {payload}")
         constructed_payload = {
-            'Id': message_id,
+            'Id': message_id or uuid4().hex,
             'MessageBody': dumps(payload, cls=DecimalEncoder),
             'MessageGroupId': message_group_id
         }
