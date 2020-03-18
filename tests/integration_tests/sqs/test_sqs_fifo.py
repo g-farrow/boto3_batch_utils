@@ -12,7 +12,7 @@ from .. import large_messages
 class TestSqsStandard(TestCase):
 
     def test_more_than_one_batch_small_messages(self):
-        sqs_client = SQSFifoBatchDispatcher(queue_name='test_standard_queue', content_based_deduplication=True)
+        sqs_client = SQSFifoBatchDispatcher(queue_name='test_standard_queue')
 
         mock_boto3 = Mock()
         sqs_client._aws_service = mock_boto3
@@ -28,7 +28,7 @@ class TestSqsStandard(TestCase):
         self.assertEqual(2, sqs_client._batch_dispatch_method.call_count)
 
     def test_one_oversized_message(self):
-        sqs_client = SQSFifoBatchDispatcher(queue_name='test_standard_queue', content_based_deduplication=True)
+        sqs_client = SQSFifoBatchDispatcher(queue_name='test_standard_queue')
 
         mock_boto3 = Mock()
         sqs_client._aws_service = mock_boto3
@@ -45,7 +45,7 @@ class TestSqsStandard(TestCase):
         self.assertIn('exceeds the maximum payload size', str(context.exception))
 
     def test_one_oversized_message_with_deduplication_id(self):
-        sqs_client = SQSFifoBatchDispatcher(queue_name='test_standard_queue', content_based_deduplication=True)
+        sqs_client = SQSFifoBatchDispatcher(queue_name='test_standard_queue')
 
         mock_boto3 = Mock()
         sqs_client._aws_service = mock_boto3
@@ -62,7 +62,7 @@ class TestSqsStandard(TestCase):
         self.assertIn('exceeds the maximum payload size', str(context.exception))
 
     def test_more_than_one_batch_large_messages(self):
-        sqs_client = SQSFifoBatchDispatcher(queue_name='test_standard_queue', content_based_deduplication=True)
+        sqs_client = SQSFifoBatchDispatcher(queue_name='test_standard_queue')
 
         mock_boto3 = Mock()
         sqs_client._aws_service = mock_boto3
@@ -79,7 +79,7 @@ class TestSqsStandard(TestCase):
         self.assertEqual(2, sqs_client._batch_dispatch_method.call_count)
 
     def test_batch_of_10_failed_first_time_messages(self):
-        sqs_client = SQSFifoBatchDispatcher(queue_name='test_standard_queue', content_based_deduplication=True)
+        sqs_client = SQSFifoBatchDispatcher(queue_name='test_standard_queue')
 
         mock_boto3 = Mock()
         sqs_client._aws_service = mock_boto3
@@ -136,7 +136,7 @@ class TestSqsStandard(TestCase):
         ], any_order=True)
 
     def test_batch_write_throws_exceptions(self):
-        sqs_client = SQSFifoBatchDispatcher(queue_name='test_standard_queue', content_based_deduplication=True)
+        sqs_client = SQSFifoBatchDispatcher(queue_name='test_standard_queue')
         mock_client_error = ClientError({'Error': {'Code': 500, 'Message': 'broken'}}, "Dynamo")
         mock_boto3 = Mock()
         sqs_client._aws_service = mock_boto3
@@ -178,7 +178,7 @@ class TestSqsStandard(TestCase):
         self.assertEqual(test_payloads, sqs_client.unprocessed_items)
 
     def test_individual_write_throws_exceptions(self):
-        sqs_client = SQSFifoBatchDispatcher(queue_name='test_standard_queue', content_based_deduplication=True)
+        sqs_client = SQSFifoBatchDispatcher(queue_name='test_standard_queue')
 
         mock_client_error = ClientError({'Error': {'Code': 500, 'Message': 'broken'}}, "SQS")
 

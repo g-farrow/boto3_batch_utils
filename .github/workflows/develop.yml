@@ -1,12 +1,8 @@
-name: Feature Branch Pipeline
+name: Develop Pipeline
 on:
   push:
     branches:
-      - '*'         # matches every branch
-      - '*/*'       # matches every branch containing a single '/'
-      - '!master'   # excludes master
-      - '!develop'   # excludes develop
-      - '!gh-pages'     # excludes docs branch
+      - 'develop'
 
 jobs:
   linting:

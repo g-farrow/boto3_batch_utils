@@ -36,8 +36,14 @@ Version number is stored and maintained in `boto3_batch_utils/__init__.py:__vers
 * Pull Request made from `develop` branch to `master`.
 
 ## Automation, CI/CD
-All branches utilise GitHub Actions to automate linting, unit tests and integration tests. These are run automatically
-upon a `push`.
+Automation is achieved using GitHub Actions.
 
-In addition to the above, the `master` branch also automatically packages and publishes the library to 
+### All Branches
+Linting, unit tests and integration tests. These are run automatically upon a `push`.
+
+[PyUp](https://pyup.io/) is used for dependency checking. This is also automated via GitHub Actions.
+
+### Master (Publishing)
+In _addition_ to the above, the `master` branch also automatically packages and publishes the library to 
 [PyPi](https://pypi.org/project/boto3-batch-utils/). It does so using the assigned version (see above).
+
