@@ -31,8 +31,8 @@ class CloudwatchBatchDispatcher(BaseDispatcher):
     def __str__(self):
         return f"CloudwatchBatchDispatcher::{self.namespace}"
 
-    def submit_payload(self, metric_name: str, value: (str, int), timestamp: datetime = None,
-                       dimensions: (dict, list) = None, unit: str = 'Count'):
+    def submit_metric(self, metric_name: str, value: int, timestamp: datetime = None,
+                      dimensions: (dict, list) = None, unit: str = 'Count'):
         """ Submit a metric ready to be batched up and sent to Cloudwatch """
         payload = {
                 'MetricName': metric_name,

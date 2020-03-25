@@ -18,7 +18,7 @@ class MockClient:
 @patch('boto3_batch_utils.Base.boto3.client', MockClient)
 @patch('boto3_batch_utils.Base.boto3', Mock())
 @patch.object(BaseDispatcher, 'submit_payload')
-class SubmitPayload(TestCase):
+class SubmitMetric(TestCase):
 
     def test(self, mock_submit_payload):
         cw = CloudwatchBatchDispatcher('test_space', max_batch_size=1)
@@ -27,8 +27,8 @@ class SubmitPayload(TestCase):
         mock_dimensions = None
         mock_value = 123
         mock_unit = 'Bytes'
-        cw.submit_payload(metric_name=mock_metric_name, value=mock_value, timestamp=mock_timestamp,
-                          dimensions=mock_dimensions, unit=mock_unit)
+        cw.submit_metric(metric_name=mock_metric_name, value=mock_value, timestamp=mock_timestamp,
+                         dimensions=mock_dimensions, unit=mock_unit)
         mock_submit_payload.assert_called_once_with({
             'MetricName': mock_metric_name,
             'Timestamp': mock_timestamp,
