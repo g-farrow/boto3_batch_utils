@@ -34,8 +34,8 @@ from boto3_batch_utils import CloudwatchBatchDispatcher
 
 cw = CloudwatchBatchDispatcher('TestService')
 
-cw.submit_payload('DoingACountMetric', value=555)
-cw.submit_payload('DoingACountMetric', value=4, unit='Seconds')
+cw.submit_metric('DoingACountMetric', value=555)
+cw.submit_metric('DoingACountMetric', value=4, unit='Seconds')
 
 unprocessed_records = cw.flush_payloads()
 ```
@@ -72,14 +72,14 @@ from boto3_batch_utils import CloudwatchBatchDispatcher, cloudwatch_dimension as
 
 cw = CloudwatchBatchDispatcher('TestService')
 
-cw.submit_payload('DoingACountMetric', value=1234, dimensions=cd('dimA', '12345'))
-cw.submit_payload('DoingASecondsMetric', value=978, dimensions=[cd('timeA', '11'), cd('timeB', '4')])
+cw.submit_metric('DoingACountMetric', value=1234, dimensions=cd('dimA', '12345'))
+cw.submit_metric('DoingASecondsMetric', value=978, dimensions=[cd('timeA', '11'), cd('timeB', '4')])
 
 cw.flush_payloads()
 ```
 
 ### Uniqueness
-When a record is submitted to the Cloudwatch client using `submit_payload` it is *NOT* checked for uniqueness. When 
+When a record is submitted to the Cloudwatch client using `submit_metric` it is *NOT* checked for uniqueness. When 
 sending data to Cloudwatch Metrics Stream, it is both likely and valid to send duplicate metric payloads.
 
 ---------------------------
