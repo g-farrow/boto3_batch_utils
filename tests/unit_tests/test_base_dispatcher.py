@@ -8,8 +8,9 @@ from boto3_batch_utils.Base import BaseDispatcher
 
 class MockClient:
 
-    def __init__(self, client_name):
+    def __init__(self, client_name, **kwargs):
         self.client_name = client_name + "_client"
+        self.kwargs = kwargs or {}
 
     def send_lots(self, batch):
         pass
@@ -75,6 +76,13 @@ class InitialiseAwsClient(TestCase):
         self.assertEqual('test_subject_client', base._aws_service.client_name)
         self.assertEqual('send_lots', base._batch_dispatch_method.__name__)
         self.assertEqual('send_one', base._individual_dispatch_method.__name__)
+    
+    def test_boto3_overrides(self):
+        base = BaseDispatcher('test_subject', 'send_lots', 'send_one', max_batch_size=1, endpoint_url='https://dummy_endpoint:54321/', aws_session_token='session_token')
+        base._initialise_aws_client()
+        self.assertEqual('https://dummy_endpoint:54321/', base._aws_service.kwargs['endpoint_url'])
+        self.assertEqual('session_token', base._aws_service.kwargs['aws_session_token'])
+
 
 
 @patch('boto3_batch_utils.Base._boto3_interface_type_mapper', mock_boto3_interface_type_mapper)
