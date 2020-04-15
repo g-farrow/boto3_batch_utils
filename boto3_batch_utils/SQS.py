@@ -65,8 +65,8 @@ class SQSBatchDispatcher(SQSBaseBatchDispatcher):
     Manage the batch 'send' of SQS messages
     """
 
-    def __init__(self, queue_name, max_batch_size=10):
-        super().__init__(queue_name, max_batch_size)
+    def __init__(self, queue_name, max_batch_size=10, **kwargs):
+        super().__init__(queue_name, max_batch_size, **kwargs)
         self.fifo_queue = False
 
     def __str__(self):
@@ -98,8 +98,8 @@ class SQSBatchDispatcher(SQSBaseBatchDispatcher):
 
 class SQSFifoBatchDispatcher(SQSBaseBatchDispatcher):
 
-    def __init__(self, queue_name, max_batch_size=10):
-        super().__init__(queue_name, max_batch_size)
+    def __init__(self, queue_name, max_batch_size=10, **kwargs):
+        super().__init__(queue_name, max_batch_size, **kwargs)
         self.fifo_queue = True
 
     def __str__(self):
