@@ -29,6 +29,7 @@ class BaseDispatcher:
         :param flush_payload_on_max_batch_size: bool - should payload be automatically sent once the payload size is
         equal to that of the maximum permissible batch (True), or should the manager wait for a flush payload call
         (False)
+        :param kwargs: dict - keyword arguments passed to aws_service during its creation
         """
         self.aws_service_name = aws_service
         self.aws_service_args = kwargs or {}
