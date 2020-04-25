@@ -16,12 +16,13 @@ class KinesisBatchDispatcher(BaseDispatcher):
     Manage the batch 'put' of Kinesis records
     """
 
-    def __init__(self, stream_name: str, partition_key_identifier: str = None, max_batch_size: int = 250):
+    def __init__(self, stream_name: str, partition_key_identifier: str = None, max_batch_size: int = 250,
+                 **kwargs: dict):
         self.stream_name = stream_name
         self.partition_key_identifier = partition_key_identifier
         self.batch_in_progress = []
         super().__init__('kinesis', batch_dispatch_method='put_records', individual_dispatch_method='put_record',
-                         max_batch_size=max_batch_size)
+                         max_batch_size=max_batch_size, **kwargs)
         self._aws_service_batch_max_payloads = constants.KINESIS_BATCH_MAX_PAYLOADS
         self._aws_service_message_max_bytes = constants.KINESIS_MESSAGE_MAX_BYTES
         self._aws_service_batch_max_bytes = constants.KINESIS_BATCH_MAX_BYTES
