@@ -18,7 +18,7 @@ _boto3_interface_type_mapper = {
 class BaseDispatcher:
 
     def __init__(self, aws_service: str, batch_dispatch_method: str, individual_dispatch_method: str = None,
-                 max_batch_size: int = 1):
+                 max_batch_size: int = 1, **kwargs: dict):
         """
         :param aws_service: object - the boto3 client which shall be called to dispatch each payload
         :param batch_dispatch_method: method - the method to be called when attempting to dispatch multiple items in a
@@ -29,8 +29,10 @@ class BaseDispatcher:
         :param flush_payload_on_max_batch_size: bool - should payload be automatically sent once the payload size is
         equal to that of the maximum permissible batch (True), or should the manager wait for a flush payload call
         (False)
+        :param kwargs: dict - keyword arguments passed to aws_service during its creation
         """
         self.aws_service_name = aws_service
+        self.aws_service_args = kwargs or {}
         self._aws_service = None
         self.batch_dispatch_method = batch_dispatch_method
         self._batch_dispatch_method = None
@@ -117,7 +119,7 @@ class BaseDispatcher:
         """
         if not self._aws_service:
             self._aws_service = getattr(boto3, _boto3_interface_type_mapper[self.aws_service_name])(
-                self.aws_service_name)
+                self.aws_service_name, **self.aws_service_args)
             self._batch_dispatch_method = getattr(self._aws_service, str(self.batch_dispatch_method))
             if self.individual_dispatch_method:
                 self._individual_dispatch_method = getattr(self._aws_service, self.individual_dispatch_method)
